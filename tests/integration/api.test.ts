@@ -1,0 +1,104 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+import { fixture, demo, refresh } from '../helpers.js';
+import { MockProvider, demoCollection } from '../../apps/api/src/modules/netease-api/mock.js';
+import type { MusicProvider } from '../../apps/api/src/modules/netease-api/provider.js';
+import { AppError } from '../../apps/api/src/common/errors.js';
+
+test('full API: double module input, dedup, three snapshots, comparison, history and evidence', async t => {
+  const provider = new MockProvider(), f = fixture(t, { provider }), user = await demo(f.app);
+  assert.equal((await f.app.inject({ url: '/analysis/latest', headers: user.headers })).statusCode, 404);
+  const first = await refresh(f, user.headers, 'first');
+  const report1 = (await f.app.inject({ url: '/analysis/latest', headers: user.headers })).json();
+  assert.equal(report1.modules.longTermListening.sampleSize, 100); assert.equal(report1.modules.recentFavorites.sampleSize, 25);
+  assert.ok(report1.insights[0].evidence.length);
+  const duplicate = await refresh(f, user.headers);
+  assert.equal(duplicate.unchanged, true); assert.equal(duplicate.snapshotId, first.snapshotId);
+  provider.revision = 1;
+  await refresh(f, user.headers);
+  provider.revision = 2;
+  const changedInput = await f.app.inject({ method: 'PUT', url: '/inputs/recent-favorites', headers: user.headers, payload: { items: [{ songId: '121' }, { songId: '123' }] } });
+  assert.equal(changedInput.statusCode, 200);
+  const third = await refresh(f, user.headers);
+  const history = (await f.app.inject({ url: '/analysis/history?limit=2', headers: user.headers })).json();
+  assert.equal(history.items.length, 2); assert.equal(history.hasMore, true);
+  const tail = (await f.app.inject({ url: '/analysis/history?limit=2&offset=2', headers: user.headers })).json();
+  assert.equal(tail.items.length, 1); assert.equal(tail.hasMore, false);
+  const comparison = (await f.app.inject({ url: `/analysis/compare?from=${first.snapshotId}&to=${third.snapshotId}`, headers: user.headers })).json();
+  assert.equal(comparison.comparable, true); assert.ok(comparison.indexDeltas.concentration > 0);
+  const timeline = (await f.app.inject({ url: '/analysis/trends?days=all', headers: user.headers })).json();
+  assert.equal(timeline.points.length, 3); assert.equal(timeline.trends.find((x: { key: string }) => x.key === 'concentration').direction, 'up');
+  const old = (await f.app.inject({ url: `/analysis/snapshot/${first.snapshotId}`, headers: user.headers })).json();
+  assert.deepEqual(old, report1);
+  for (const path of ['/analysis/modules/long-term', '/analysis/modules/recent-favorites', '/analysis/structure', '/analysis/preferences', '/analysis/metric/concentration']) assert.equal((await f.app.inject({ url: path, headers: user.headers })).statusCode, 200);
+  const favorites = (await f.app.inject({ url: '/analysis/modules/recent-favorites', headers: user.headers })).json();
+  assert.equal(favorites.sampleSize, 2); assert.equal(favorites.longTermOverlapRate, 0);
+  assert.throws(() => f.store.db.prepare('UPDATE snapshots SET checksum=? WHERE id=?').run('overwrite', first.snapshotId), /immutable/);
+});
+test('ownership, invalid requests, token revocation and complete account deletion', async t => {
+  const f = fixture(t), alice = await demo(f.app), bob = await demo(f.app), run = await refresh(f, alice.headers);
+  assert.equal((await f.app.inject({ url: '/analysis/latest' })).statusCode, 401);
+  for (const url of [`/analysis/snapshot/${run.snapshotId}`, `/analysis/runs/${run.runId}`, `/analysis/compare?from=${run.snapshotId}&to=${randomUUID()}`]) assert.equal((await f.app.inject({ url, headers: bob.headers })).statusCode, 404);
+  for (const url of ['/analysis/history?limit=-1', '/analysis/metric/bogus', '/analysis/trends?days=7']) assert.equal((await f.app.inject({ url, headers: alice.headers })).statusCode, 400);
+  const invalid = await f.app.inject({ method: 'PUT', url: '/inputs/recent-favorites', headers: alice.headers, payload: { items: [{ songId: '1' }, { songId: '1' }] } });
+  assert.equal(invalid.statusCode, 400);
+  assert.equal((await f.app.inject({ method: 'DELETE', url: '/account/data', headers: alice.headers })).statusCode, 200);
+  assert.equal((await f.app.inject({ url: '/auth/me', headers: alice.headers })).statusCode, 401);
+  for (const table of ['snapshots', 'collection_runs', 'favorite_inputs', 'user_song_state', 'api_cache']) {
+    const row = f.store.db.prepare(`SELECT COUNT(*) AS count FROM ${table} WHERE user_id=?`).get(alice.account.userId);
+    assert.equal(row!.count, 0, table);
+  }
+  for (const table of ['insights', 'raw_responses', 'playback_records_summary']) assert.equal(f.store.db.prepare(`SELECT COUNT(*) AS count FROM ${table}`).get()!.count, 0, table);
+  assert.equal((await f.app.inject({ url: '/auth/me', headers: bob.headers })).statusCode, 200);
+  await f.app.inject({ method: 'POST', url: '/auth/logout', headers: bob.headers });
+  assert.equal((await f.app.inject({ url: '/auth/me', headers: bob.headers })).statusCode, 401);
+});
+test('running refresh is deduplicated, input locked, deletion cancels before persistence', async t => {
+  let started!: () => void;
+  const active = new Promise<void>(r => { started = r; });
+  const provider: MusicProvider = { mode: 'mock', verifyCookie: async () => ({ providerId: 'x', nickname: 'x' }), collect: async context => { started(); await new Promise<void>((_r, reject) => context.signal.addEventListener('abort', () => reject(context.signal.reason), { once: true })); return demoCollection(); } };
+  const f = fixture(t, { provider }), user = await demo(f.app);
+  const first = await f.app.inject({ method: 'POST', url: '/analysis/refresh', headers: user.headers, payload: {} });
+  await active;
+  const next = await f.app.inject({ method: 'POST', url: '/analysis/refresh', headers: user.headers, payload: {} });
+  assert.equal(first.json().runId, next.json().runId);
+  assert.equal((await f.app.inject({ method: 'PUT', url: '/inputs/recent-favorites', headers: user.headers, payload: { items: [] } })).statusCode, 409);
+  await f.app.inject({ method: 'DELETE', url: '/account/data', headers: user.headers });
+  await f.queue.idle();
+  assert.equal(f.store.db.prepare('SELECT COUNT(*) AS count FROM snapshots').get()!.count, 0);
+});
+test('failed runs expose sanitized error and do not create partial snapshots', async t => {
+  const provider: MusicProvider = { mode: 'mock', verifyCookie: async () => ({ providerId: 'x', nickname: 'x' }), collect: async () => { throw new Error('Cookie=secret-do-not-return'); } };
+  const f = fixture(t, { provider }), user = await demo(f.app);
+  const response = await f.app.inject({ method: 'POST', url: '/analysis/refresh', headers: user.headers, payload: {} });
+  await f.queue.idle();
+  const run = await f.app.inject({ url: `/analysis/runs/${response.json().runId}`, headers: user.headers });
+  assert.equal(run.json().status, 'failed'); assert.equal(run.json().error.code, 'INTERNAL_ERROR'); assert.ok(!run.body.includes('secret'));
+  assert.equal(f.store.latest(user.account.userId), undefined);
+});
+test('refresh cooldown and idempotency key persist across completed requests', async t => {
+  const f = fixture(t, { env: { REFRESH_COOLDOWN_MS: '60000' } }), user = await demo(f.app);
+  const run = await refresh(f, user.headers, 'same');
+  const same = await f.app.inject({ method: 'POST', url: '/analysis/refresh', headers: user.headers, payload: { idempotencyKey: 'same' } });
+  assert.equal(same.json().runId, run.runId);
+  assert.equal((await f.app.inject({ method: 'POST', url: '/analysis/refresh', headers: user.headers, payload: {} })).statusCode, 429);
+});
+test('real binding derives user from verified provider and unbind retains report but removes secrets', async t => {
+  const provider: MusicProvider = { mode: 'netease', verifyCookie: async cookie => { if (cookie !== 'valid-private-cookie') throw new AppError(401, 'UPSTREAM_AUTH_EXPIRED', '授权失效'); return { providerId: '777', nickname: '模拟真实适配测试' }; }, collect: async () => demoCollection() };
+  const f = fixture(t, { provider, env: { PROVIDER_MODE: 'netease' } });
+  assert.equal((await f.app.inject({ method: 'POST', url: '/auth/demo' })).statusCode, 403);
+  const response = await f.app.inject({ method: 'POST', url: '/auth/connect', payload: { cookie: 'valid-private-cookie' } });
+  assert.equal(response.statusCode, 200); assert.ok(!response.body.includes('valid-private-cookie'));
+  const login = response.json(), headers = { authorization: `Bearer ${login.token}` };
+  assert.equal(login.account.providerId, '777');
+  const row = f.store.db.prepare('SELECT cookie_encrypted FROM users WHERE id=?').get(login.account.userId)!;
+  assert.notEqual(row.cookie_encrypted, 'valid-private-cookie'); assert.equal(f.store.cookie(login.account.userId), 'valid-private-cookie');
+  const run = await refresh(f, headers);
+  f.store.cacheSet(login.account.userId, 'private', { test: true }, 60000);
+  assert.equal((await f.app.inject({ method: 'DELETE', url: '/auth/binding', headers })).statusCode, 200);
+  assert.equal(f.store.cookie(login.account.userId), undefined); assert.equal(f.store.cacheGet(login.account.userId, 'private'), undefined);
+  assert.equal(f.store.db.prepare('SELECT COUNT(*) AS count FROM raw_responses').get()!.count, 0);
+  assert.equal((await f.app.inject({ url: `/analysis/snapshot/${run.snapshotId}`, headers })).statusCode, 200);
+  assert.equal((await f.app.inject({ method: 'POST', url: '/analysis/refresh', headers, payload: {} })).statusCode, 409);
+});

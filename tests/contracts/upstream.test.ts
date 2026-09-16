@@ -1,0 +1,73 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtempSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { NeteaseProvider } from '../../apps/api/src/modules/netease-api/http.js';
+import { Store } from '../../apps/api/src/database/store.js';
+import { recordResponse } from '../../apps/api/src/modules/netease-api/contracts.js';
+import { removeTemp } from '../helpers.js';
+import { accountPayload, longPayload, weekPayload, recentPayload, likesPayload, rawSong } from '../fixtures/raw/upstream.js';
+import type { CollectionContext } from '../../apps/api/src/modules/netease-api/provider.js';
+
+test('real adapter protocol: account check, five endpoints, timestamp isolation, metadata batches and cache', async t => {
+  const dir = mkdtempSync(join(tmpdir(), 'musicmirror-test-')), store = new Store(dir);
+  t.after(() => { store.close(); removeTemp(dir); });
+  const account = store.createAccount('777', 'Fixture user', 'netease', 'synthetic-cookie');
+  const calls: Array<{ url: URL; body: Record<string, string> }> = [];
+  const fakeFetch: typeof fetch = async (input, init) => {
+    const url = new URL(String(input)), body = JSON.parse(String(init!.body));
+    calls.push({ url, body });
+    assert.equal(url.origin, 'http://127.0.0.1:3999'); assert.equal(body.cookie, 'synthetic-cookie');
+    assert.ok(url.searchParams.get('timestamp')); assert.ok(!url.toString().includes('cookie'));
+    if (url.pathname === '/login/status') return Response.json(accountPayload);
+    if (url.pathname === '/user/record') return Response.json(body.type === '0' ? longPayload : weekPayload);
+    if (url.pathname === '/record/recent/song') return Response.json(recentPayload);
+    if (url.pathname === '/likelist') return Response.json(likesPayload);
+    if (url.pathname === '/song/detail') return Response.json({ code: 200, songs: body.ids.split(',').map((id: string) => rawSong(Number(id))) });
+    throw new Error('unexpected endpoint');
+  };
+  const provider = new NeteaseProvider({ baseUrl: 'http://127.0.0.1:3999', store, fetch: fakeFetch, intervalMs: 0, retryMs: 1 });
+  assert.deepEqual(await provider.verifyCookie('synthetic-cookie'), { providerId: '777', nickname: 'Fixture user' });
+  const ctx: CollectionContext = { account, cookie: 'synthetic-cookie', signal: new AbortController().signal, additionalSongIds: ['1234'] };
+  const result = await provider.collect(ctx);
+  assert.equal(result.long!.length, 70); assert.equal(result.recentMode, 'unique');
+  assert.ok(result.details.some(x => x.id === '1234'));
+  const detailCalls = calls.filter(x => x.url.pathname === '/song/detail');
+  assert.equal(detailCalls.length, 2); assert.ok(detailCalls.every(x => x.body.ids.split(',').length <= 50));
+  assert.equal(new Set(calls.map(c => c.url.toString())).size, calls.length);
+  const before = calls.length;
+  await provider.collect(ctx); assert.equal(calls.length, before, 'second collection uses caches');
+  const secondAccount = store.createAccount('888', 'Other fixture', 'netease', 'synthetic-cookie');
+  await provider.collect({ ...ctx, account: secondAccount });
+  assert.equal(calls.length - before, 4, 'private source caches are per-user; public metadata is shared');
+  assert.equal(store.db.prepare('SELECT COUNT(*) AS count FROM song_artists').get()!.count, result.details.length);
+});
+test('schema drift is rejected; malformed optional likes become unavailable rather than empty', async t => {
+  assert.equal(recordResponse.safeParse({ code: 200, allData: [{ broken: 'shape' }] }).success, false);
+  const dir = mkdtempSync(join(tmpdir(), 'musicmirror-test-')), store = new Store(dir);
+  t.after(() => { store.close(); removeTemp(dir); });
+  const account = store.createAccount('777', 'Fixture', 'netease', 'c');
+  const provider = new NeteaseProvider({ baseUrl: 'http://127.0.0.1', store, intervalMs: 0, retryMs: 1, fetch: async (input, init) => {
+    const path = new URL(String(input)).pathname, body = JSON.parse(String(init!.body));
+    if (path === '/likelist') return Response.json({ code: 200, renamedIds: [1] });
+    if (path === '/user/record') return Response.json(body.type === '0' ? longPayload : weekPayload);
+    if (path === '/record/recent/song') return Response.json(recentPayload);
+    return Response.json({ code: 200, songs: body.ids.split(',').map((x: string) => rawSong(Number(x))) });
+  } });
+  const raw = await provider.collect({ account, cookie: 'c', additionalSongIds: [], signal: new AbortController().signal });
+  assert.equal(raw.likes, null); assert.ok(raw.warnings.some(w => w.includes('UPSTREAM_SCHEMA_CHANGED')));
+});
+test('expired auth never retries; transient failures retry within a finite bound', async t => {
+  const dir = mkdtempSync(join(tmpdir(), 'musicmirror-test-')), store = new Store(dir);
+  t.after(() => { store.close(); removeTemp(dir); });
+  let calls = 0;
+  const expired = new NeteaseProvider({ baseUrl: 'http://127.0.0.1', store, intervalMs: 0, retryMs: 1, fetch: async () => { calls++; return Response.json({ code: 301 }); } });
+  await assert.rejects(expired.verifyCookie('private'), { code: 'UPSTREAM_AUTH_EXPIRED' }); assert.equal(calls, 1);
+  calls = 0;
+  const retry = new NeteaseProvider({ baseUrl: 'http://127.0.0.1', store, intervalMs: 0, retryMs: 1, fetch: async () => { calls++; return calls < 3 ? new Response('', { status: 503 }) : Response.json(accountPayload); } });
+  assert.equal((await retry.verifyCookie('private')).providerId, '777'); assert.equal(calls, 3);
+  calls = 0;
+  const unavailable = new NeteaseProvider({ baseUrl: 'http://127.0.0.1', store, intervalMs: 0, retryMs: 1, fetch: async () => { calls++; throw new Error('Cookie=secret'); } });
+  await assert.rejects(unavailable.verifyCookie('private'), { code: 'UPSTREAM_UNAVAILABLE' }); assert.equal(calls, 4);
+});

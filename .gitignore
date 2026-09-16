@@ -1,0 +1,11 @@
+.kilo
+.vscode
+node_modules/
+dist/
+.data/
+.env
+.env.*
+!.env.example
+coverage/
+*.log
+project.private.config.json

@@ -1,15 +1,21 @@
-# 目录职责与依赖
+# MusicMirror 全栈架构
 
-依据《项目完成指南》第 3、15、16、22 节，将仓库划分为应用、共享包、外部服务、测试和基础设施。根目录保留原始指南与 API 文档入口。
+依据 [项目完成指南](design/项目完成指南.md)、[两类输入](design/输入数据设想.png) 和 [宣传方向](design/项目宣传点.md)。产品边界见 [product-spec.md](product-spec.md)，优化建议见 [roadmap.md](roadmap.md)。原始设计文档保留在 docs/design。
 
 ## 数据流
 
 ```text
-小程序 → 自有 API → 采集任务 → 网易云 API Enhanced
+未来 GUI → 小程序按钮处理器 → wx.request → 自有 API → 持久化采集任务 → mock / 网易云 API Enhanced
                       ↓
                  原始数据存储
                       ↓
                    标准化
+                      ↓
+       ┌──────────────┴────────────────┐
+       ↓                               ↓
+长期 Top100：播放加权          近期红心集合：歌曲等权
+长期重复聆听结构               近期主动审美选择
+       └──────────────┬────────────────┘
                       ↓
               数学特征 → 六大行为指数
                       ↓
@@ -48,10 +54,20 @@
 
 六大指数分别是集中度、深听度、广度、探索度、稳定度、收藏—实播一致度。统一归入 `algorithms/src/metrics`，实现阶段再按指数拆文件。
 
+当前物理实现将指数编排放在 `packages/algorithms/src/index.ts`，参数在config.ts、数学函数在features、聚合在distributions；后续再按指数拆metrics文件。API路由在app.ts，collector调用这些纯函数；元数据批量补全在netease-api/http.ts，insight-engine直接生成洞察。表中的其他服务目录保留为后续拆分边界，不为本地链路强行添加空服务层。
+
 小程序只通过自有后端获取报告和刷新状态；网易云会话与采集逻辑由后端管理。共享包不得反向依赖 `apps`，两个应用不互相导入源码。
 
 `services/netease-api-enhanced` 预留第三方服务的版本与部署接入说明，不复制第三方源码。`infra/docker` 预留 API、PostgreSQL、Redis、第三方服务的部署配置；指南建议的 Compose 文件待部署方案确定后添加。
 
 ## 当前阶段
 
-仅建立目录和说明。各目录的 `.gitkeep` 是 Git 占位文件，不包含程序。算法规范、API 契约及隐私文档先保留索引，具体实现与配置留待后续阶段。
+本次目标为可运行的全栈链路，不制作 GUI，不测试真实账号。Fastify + TypeScript + Zod，Node.js >=22.13；SQLite 提供真实持久化和事务，单进程任务工作器的状态存入数据库，重启恢复未完成任务。PostgreSQL、Redis、Docker 在部署阶段再引入。
+
+微信原生调用代码位于 `apps/miniapp/miniprogram/services` 与 `controllers`，不直接跨根目录导入共享 TS 包，通过 HTTP JSON 契约通信。页面注册、WXML/WXSS 和开发者工具配置由 GUI 阶段制作。
+
+`Snapshot.modules` 始终包含 longTermListening / recentFavorites 两个模块。最近播放是探索与稳定的辅助来源，不能替代近期收藏。收藏输入不可用时返回明确空态；未知收藏时间不推断一周内收藏。
+
+刷新按用户去重；采集中不允许修改收藏输入。解绑/删除取消并等待采集后再清理，避免数据被后台任务写回。快照保存和任务完成在一个事务内，标准化数据、收藏输入、可用性及版本相同则复用最新快照，时间戳本身不制造重复快照。
+
+当前仅支持一个 API 进程使用一个数据目录。实现进度及最终验证见 [progress.md](progress.md)，本文件定义目标而不是验收声明。
