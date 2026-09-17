@@ -11,6 +11,8 @@ import { NeteaseProvider } from './modules/netease-api/http.js';
 import type { MusicProvider } from './modules/netease-api/provider.js';
 import { Reports } from './modules/reports/index.js';
 import { JobQueue } from './jobs/queue.js';
+import { QrLogin } from './modules/auth/qr.js';
+import { realAccountPage } from './modules/auth/test-page.js';
 
 declare module 'fastify' { interface FastifyRequest { account: Account | null; sessionToken: string | null } }
 export function buildApp(options: { config?: Config; store?: Store; provider?: MusicProvider } = {}) {
@@ -22,15 +24,17 @@ export function buildApp(options: { config?: Config; store?: Store; provider?: M
   const app = Fastify({ logger: false, bodyLimit: 32768, requestTimeout: 30000 });
   app.decorateRequest('account', null);
   app.decorateRequest('sessionToken', null);
-  const publicRoutes = new Set(['/health', '/auth/demo', '/auth/connect']);
+  const publicRoutes = new Set(['/health', '/auth/demo', '/auth/connect', '/auth/qr', '/auth/qr/check', '/auth/qr/cancel', ...(config.ENABLE_TEST_PAGE ? ['/dev/real-account'] : [])]);
   const authLimits = new Map<string, { count: number; until: number }>();
   const mutations = new Set<string>();
   app.addHook('onRequest', async (request) => {
     if (publicRoutes.has(request.routeOptions.url ?? '')) {
-      if (request.routeOptions.url === '/health') return;
-      const now = Date.now(), previous = authLimits.get(request.ip);
-      if (!previous || previous.until < now) authLimits.set(request.ip, { count: 1, until: now + 60000 });
-      else if (++previous.count > 15) throw new AppError(429, 'AUTH_RATE_LIMIT', '登录请求过于频繁');
+      if (request.routeOptions.url === '/health' || request.routeOptions.url === '/dev/real-account') return;
+      const polling = request.routeOptions.url === '/auth/qr/check';
+      const bucket = `${request.ip}:${polling ? 'poll' : 'login'}`;
+      const now = Date.now(), previous = authLimits.get(bucket);
+      if (!previous || previous.until < now) authLimits.set(bucket, { count: 1, until: now + 60000 });
+      else if (++previous.count > (polling ? 90 : 15)) throw new AppError(429, 'AUTH_RATE_LIMIT', '登录请求过于频繁');
       return;
     }
     const header = request.headers.authorization;
@@ -49,10 +53,21 @@ export function buildApp(options: { config?: Config; store?: Store; provider?: M
   });
   app.setNotFoundHandler((_request, reply) => reply.code(404).send({ error: { code: 'NOT_FOUND', message: '接口不存在' } }));
   const session = (account: Account) => { const token = randomBytes(32).toString('base64url'); store.session(account.userId, token); return { token, account }; };
+  const grantCookie = async (cookie: string, active: () => boolean = () => true) => {
+    const profile = await provider.verifyCookie(cookie);
+    if (!active()) throw new AppError(410, 'QR_EXPIRED', '二维码已过期或取消，请重新扫码');
+    return session(store.createAccount(profile.providerId, profile.nickname, 'netease', cookie));
+  };
+  const qrLogin = new QrLogin(provider, grantCookie);
+  const qrProof = z.object({ loginId: z.uuid(), pollToken: z.string().regex(/^[A-Za-z0-9_-]{43}$/) }).strict();
   const parseId = (params: unknown) => z.object({ id: z.uuid() }).parse(params).id;
   const assertIdle = (userId: string) => { if (store.findRun(userId)) throw new AppError(409, 'ANALYSIS_IN_PROGRESS', '采集期间不能修改输入，请等待完成'); };
 
   app.get('/health', async () => ({ status: 'ok', providerMode: provider.mode }));
+  app.post('/auth/qr', async (_request, reply) => { reply.header('cache-control', 'no-store'); return qrLogin.create(); });
+  app.post('/auth/qr/check', async (request, reply) => { reply.header('cache-control', 'no-store'); const { loginId, pollToken } = qrProof.parse(request.body); return qrLogin.check(loginId, pollToken); });
+  app.post('/auth/qr/cancel', async request => { const { loginId, pollToken } = qrProof.parse(request.body); return qrLogin.cancel(loginId, pollToken); });
+  if (config.ENABLE_TEST_PAGE) app.get('/dev/real-account', async (_request, reply) => reply.header('cache-control', 'no-store').header('content-security-policy', "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'self'; frame-ancestors 'none'").type('text/html; charset=utf-8').send(realAccountPage));
   app.post('/auth/demo', async () => {
     if (provider.mode !== 'mock' || !config.ALLOW_DEMO_AUTH) throw new AppError(403, 'DEMO_DISABLED', '演示登录未启用');
     const account = store.createAccount(`demo-${randomUUID()}`, '演示听众', 'mock');
@@ -62,9 +77,7 @@ export function buildApp(options: { config?: Config; store?: Store; provider?: M
   app.post('/auth/connect', async request => {
     if (provider.mode !== 'netease') throw new AppError(409, 'MOCK_MODE', '当前为模拟模式，请使用演示登录');
     const { cookie } = connectSchema.parse(request.body);
-    const profile = await provider.verifyCookie(cookie);
-    const account = store.createAccount(profile.providerId, profile.nickname, 'netease', cookie);
-    return session(account);
+    return grantCookie(cookie);
   });
   app.get('/auth/me', async request => ({ account: request.account, bound: store.bound(request.account!.userId) }));
   app.post('/auth/logout', async request => { store.logout(request.sessionToken!); return { ok: true }; });
@@ -132,8 +145,8 @@ export function buildApp(options: { config?: Config; store?: Store; provider?: M
   };
   app.delete('/auth/binding', async request => accountMutation(request.account!.userId, false));
   app.delete('/account/data', async request => accountMutation(request.account!.userId, true));
-  const cleanup = setInterval(() => { store.cleanup(); for (const [ip, entry] of authLimits) if (entry.until < Date.now()) authLimits.delete(ip); }, 60000);
+  const cleanup = setInterval(() => { store.cleanup(); qrLogin.cleanup(); for (const [ip, entry] of authLimits) if (entry.until < Date.now()) authLimits.delete(ip); }, 60000);
   cleanup.unref();
-  app.addHook('onClose', async () => { clearInterval(cleanup); await queue.close(); store.close(); });
+  app.addHook('onClose', async () => { clearInterval(cleanup); qrLogin.close(); await queue.close(); store.close(); });
   return { app, store, queue, provider, config };
 }

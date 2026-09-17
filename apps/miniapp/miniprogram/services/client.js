@@ -40,6 +40,13 @@ function createClient(options) {
     health: () => request('GET', '/health'),
     loginDemo: () => login('/auth/demo', {}),
     connect: cookie => login('/auth/connect', { cookie }),
+    createQr: () => request('POST', '/auth/qr', {}),
+    async checkQr(attempt) {
+      const result = await request('POST', '/auth/qr/check', { loginId: attempt.loginId, pollToken: attempt.pollToken });
+      if (result.status === 'authenticated') wxApi.setStorageSync(tokenKey, result.token);
+      return result;
+    },
+    cancelQr: attempt => request('POST', '/auth/qr/cancel', { loginId: attempt.loginId, pollToken: attempt.pollToken }),
     me: () => request('GET', '/auth/me'),
     async logout() { await request('POST', '/auth/logout', {}); clearToken(); },
     unbind: () => request('DELETE', '/auth/binding'),

@@ -1,0 +1,7 @@
+{
+  "name": "musicmirror-netease-service",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": { "start": "node start.cjs" },
+  "dependencies": { "@neteasecloudmusicapienhanced/api": "4.40.1" }
+}

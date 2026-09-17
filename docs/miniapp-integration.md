@@ -24,7 +24,9 @@ Page({
 | 处理器 | 参数 / 状态 |
 | --- | --- |
 | onDemoLogin / onLoadAccount | 无；account、bound |
-| onBindAccount | event.detail.cookie；生产GUI建议后续二维码入口 |
+| onCreateLoginQr | 无；loginQr.image、expiresAt、pollIntervalMs、status |
+| onCheckLoginQr | 按pollIntervalMs调用；成功自动保存自有token并更新account；pollToken不进入页面data |
+| onBindAccount | 备用入口event.detail.cookie；常规登录优先二维码 |
 | onLoadFavoriteInput | 无；favoriteItems |
 | onSaveRecentFavorites | event.detail.items或page.data.favoriteItems；数组项songId、可选likedAt |
 | onRefreshAnalysis / onResumeAnalysis | 刷新保存runId、轮询状态、获取report；恢复读取已有runId |
@@ -41,3 +43,5 @@ Page({
 收藏编辑只更新输入，不改历史报告；之后点击刷新生成新快照。报告需按basis注明权重、显示sampleSize和warnings；value=null显示reason。
 
 GUI阶段再添加app入口、页面WXML/WXSS/JSON和project.config.json（miniprogramRoot指向miniprogram/）。开发者工具本地联调需按其设置允许本机请求；真机把baseUrl改成可达的服务地址。正式环境使用HTTPS与微信合法请求域名，不携带网易云Cookie调用报告接口。
+
+二维码key/create/check已接通，卸载处理器取消未完成的扫码。当前可使用本机诊断页完成首次测试，正式微信页面的图片展示与轮询生命周期仍需GUI阶段接入。

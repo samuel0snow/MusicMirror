@@ -6,4 +6,6 @@ export interface MusicProvider {
   collect(context: CollectionContext): Promise<RawCollection>;
   verifyCookie(cookie: string, signal?: AbortSignal): Promise<{ providerId: string; nickname: string }>;
   songDetails?(ids: string[], context: CollectionContext): Promise<RawSong[]>;
+  createQr?(): Promise<{ key: string; image: string }>;
+  checkQr?(key: string): Promise<{ code: 800 | 801 | 802 | 803; cookie?: string }>;
 }

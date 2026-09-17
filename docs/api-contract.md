@@ -7,6 +7,9 @@
 | 服务检查 | GET /health | status、providerMode |
 | 演示登录 | POST /auth/demo | token、account；真实模式关闭 |
 | 绑定 | POST /auth/connect `{cookie}` | 校验后返回自有token、account |
+| 生成登录二维码 | POST /auth/qr | loginId、pollToken、qrImage、expiresAt、pollIntervalMs |
+| 检查扫码状态 | POST /auth/qr/check `{loginId,pollToken}` | waiting/scanned/expired/authenticated；成功返回自有token和account |
+| 取消扫码 | POST /auth/qr/cancel `{loginId,pollToken}` | 使短期登录会话失效 |
 | 授权状态 | GET /auth/me | account、bound |
 | 退出 | POST /auth/logout | 撤销当前会话 |
 | 编辑近期收藏 | PUT /inputs/recent-favorites `{items:[{songId,likedAt?}]}` | selection、requiresRefresh，最多50首 |
@@ -43,3 +46,5 @@ metricKey：concentration/deepListening/breadth/exploration/stability/intentAlig
 收藏分布使用通用聚合字段playShare/playCount，在basis=song_count下分别表示等权份额/歌曲贡献，GUI必须展示为歌曲权重，不是播放次数。没配置不能填最近播放，未知likedAt保持null。
 
 微信请求/按钮接法见 [miniapp-integration.md](miniapp-integration.md)。本次不创建页面，当前调用目录不作为可预览GUI交付。
+
+首次真实账号测试增加默认关闭的本机诊断页：ENABLE_TEST_PAGE=true时访问 `/dev/real-account`，用于扫码与采集验证，不是产品GUI。二维码120秒过期，上游轮询最短2秒；查询凭证放POST body，成功结果保留30秒供同一请求方恢复，不重复生成token。Cookie不回传。

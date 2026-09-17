@@ -35,7 +35,7 @@ export class NeteaseProvider implements MusicProvider {
         const body: unknown = await response.json();
         const code = (body as { code?: number; data?: { code?: number } })?.code ?? (body as { data?: { code?: number } })?.data?.code;
         if (code === 301 || code === 401 || code === 403) throw new AppError(401, 'UPSTREAM_AUTH_EXPIRED', '网易云授权失效，请重新绑定');
-        if (code === 429 || (typeof code === 'number' && code >= 500)) throw new AppError(502, 'UPSTREAM_TEMPORARY', '网易云接口暂不可用');
+        if (code === 429 || (typeof code === 'number' && code >= 500 && code < 600)) throw new AppError(502, 'UPSTREAM_TEMPORARY', '网易云接口暂不可用');
         const parsed = schema.safeParse(body);
         if (!parsed.success) throw new AppError(502, 'UPSTREAM_SCHEMA_CHANGED', '网易云接口字段与预期不符，需要核对部署版本');
         return parsed.data;
@@ -52,6 +52,15 @@ export class NeteaseProvider implements MusicProvider {
     const result = await this.request('/login/status', {}, cookie, accountResponse, signal);
     if (!result.data.profile) throw new AppError(401, 'UPSTREAM_AUTH_EXPIRED', '网易云授权失效，请重新绑定');
     return { providerId: result.data.profile.userId, nickname: result.data.profile.nickname };
+  }
+  async createQr() {
+    const keyResponse = await this.request('/login/qr/key', {}, '', z.object({ code: z.literal(200), data: z.object({ unikey: z.string().min(1) }) }));
+    const key = keyResponse.data.unikey;
+    const result = await this.request('/login/qr/create', { key, qrimg: 'true' }, '', z.object({ code: z.literal(200), data: z.object({ qrimg: z.string().regex(/^data:image\/png;base64,[A-Za-z0-9+/=]+$/) }) }));
+    return { key, image: result.data.qrimg };
+  }
+  async checkQr(key: string) {
+    return this.request('/login/qr/check', { key, noCookie: 'true' }, '', z.object({ code: z.union([z.literal(800), z.literal(801), z.literal(802), z.literal(803)]), cookie: z.string().optional() }));
   }
   private async cached<T>(context: CollectionContext, path: string, parameters: Record<string, string>, schema: z.ZodType<T>, ttl: number): Promise<T> {
     const key = `${path}:${JSON.stringify(parameters)}`;

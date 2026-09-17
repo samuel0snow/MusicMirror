@@ -1,12 +1,13 @@
 'use strict';
 
-const initialState = () => ({ busy: false, error: null, account: null, bound: false, runId: null, run: null, report: null, longTerm: null, recentFavorites: null, structure: null, preferences: null, metric: null, history: null, comparison: null, trends: null, favoriteItems: [] });
+const initialState = () => ({ busy: false, error: null, account: null, bound: false, loginQr: null, runId: null, run: null, report: null, longTerm: null, recentFavorites: null, structure: null, preferences: null, metric: null, history: null, comparison: null, trends: null, favoriteItems: [] });
 
 /** Attach returned methods to a future Page; the page only needs data and setData. */
 function createActions(page, client, options) {
   let generation = 0;
   let cancellation = { cancelled: false };
   let busy = false;
+  let qrAttempt = null;
   const opts = options || {};
   const data = event => event && event.currentTarget && event.currentTarget.dataset || {};
   const detail = event => event && event.detail || {};
@@ -30,6 +31,19 @@ function createActions(page, client, options) {
     return report;
   }
   return {
+    onCreateLoginQr: () => action(async update => {
+      if (qrAttempt) await client.cancelQr(qrAttempt);
+      qrAttempt = await client.createQr();
+      const loginQr = { image: qrAttempt.qrImage, expiresAt: qrAttempt.expiresAt, pollIntervalMs: qrAttempt.pollIntervalMs, status: 'waiting' };
+      update({ loginQr }); return loginQr;
+    }),
+    onCheckLoginQr: () => action(async update => {
+      if (!qrAttempt) return null;
+      const result = await client.checkQr(qrAttempt);
+      if (result.status === 'authenticated') { qrAttempt = null; update(Object.assign(initialState(), { account: result.account, bound: true, busy: true })); }
+      else update({ loginQr: Object.assign({}, page.data.loginQr, { status: result.status }) });
+      return { status: result.status, account: result.account };
+    }),
     onDemoLogin: () => action(async update => { const account = await client.loginDemo(); update(Object.assign(initialState(), { account, bound: true, busy: true })); return account; }),
     onBindAccount: event => action(async update => { const account = await client.connect(detail(event).cookie); update(Object.assign(initialState(), { account, bound: true, busy: true })); return account; }),
     onLoadAccount: () => action(async update => { const result = await client.me(); update(result); return result; }),
@@ -56,7 +70,7 @@ function createActions(page, client, options) {
     onUnbindAccount: () => action(async update => { await client.unbind(); update({ bound: false }); return true; }),
     onDeleteData: () => action(async update => { await client.deleteData(); update(initialState()); return true; }),
     onLogout: () => action(async update => { await client.logout(); update(initialState()); return true; }),
-    onUnload() { generation++; cancellation.cancelled = true; busy = false; }
+    onUnload() { generation++; cancellation.cancelled = true; busy = false; if (qrAttempt) { client.cancelQr(qrAttempt).catch(() => {}); qrAttempt = null; } }
   };
 }
 module.exports = { createActions, initialState };

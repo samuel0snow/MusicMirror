@@ -1,0 +1,47 @@
+# 首次真实账号测试
+
+## 本次准备
+
+- 用户已授权首次真实账号测试；此前“只使用mock”限制在本次不再适用。
+- 优先补齐二维码生成、扫码/确认/过期状态和服务端Cookie接收；二维码直接复用上游返回的PNG data URL，不新增MusicMirror二维码生成依赖。
+- 上游使用开源 NeteaseCloudMusicApiEnhanced/api-enhanced 的npm发布版4.40.1，本地单独安装，仅监听127.0.0.1；不需要Docker。
+- MusicMirror测试数据目录与演示分开，服务端加密存Cookie，浏览器/小程序仅接收自有token。扫码必须由账号持有人在网易云音乐App确认。
+- 按顺序验证登录、长期Top100、周记录、近期播放、红心列表、批量元数据，再验证输入2。红心时间/排序未证实前不标记为“一周内”。
+- 记录接口是否可用、样本数量、缺失字段类别、指标是否有值；不提交Cookie、token、用户ID、歌名列表或原始私人响应。
+
+## 首测前需完善
+
+1. 二维码登录会话：短期有效、随机查询凭证、轮询限速、防重复消费、成功后自行验证账户。
+2. 上游协议：二维码800/801/802/803是业务状态，不能按HTTP错误处理；真实字段与样本测试不同则补兼容与脱敏fixture。
+3. 最近红心：验证是否存在可靠排序/时间字段，缺失则保持手动选择的诚实语义。
+4. 首测诊断：明确哪个数据源失败，不用“分析成功”掩盖所有维度均不可用。
+5. 回归：保留既有模拟链路和测试；数据库/Redis/容器化优化仍放在roadmap。
+
+## 选型来源
+
+- [上游二维码生成实现](https://github.com/NeteaseCloudMusicApiEnhanced/api-enhanced/blob/main/module/login_qr_create.js)：qrimg参数返回图片，内部已用qrcode。
+- [node-qrcode](https://github.com/soldair/node-qrcode)：MIT，已被上游复用，无需在MusicMirror重复安装。
+
+## 测试结果
+
+2026-09-17：
+
+- 上游4.40.1已通过7897代理安装；MusicMirror未新增二维码库。
+- 新增二维码接口、微信按钮处理器及默认关闭的本机诊断页。31项回归、类型检查、构建及编译产物smoke通过。
+- 本地只读上游127.0.0.1:3001与真实模式API127.0.0.1:3000的health检查成功。
+- 已实际调用上游成功生成二维码，轮询得到waiting，之后因未确认变为expired；这是二维码生成/轮询成功，不等于账号登录成功。
+- 真实账号登录、读取及两模块检查仍等待账号持有人扫码。当前不得声称真实数据采集已通过。
+
+## 如何继续
+
+打开 `http://127.0.0.1:3000/dev/real-account`，点击生成二维码，用网易云音乐App扫码并确认。页面自动完成第一次采集，展示数据可用性、数量、六指数和收藏模块状态。当前两个服务已启动；如以后重启：
+
+```powershell
+# 终端1：仅首次安装或依赖变化时执行npm ci
+npm ci --prefix services/netease-api-enhanced --omit=dev --ignore-scripts --proxy=http://127.0.0.1:7897 --https-proxy=http://127.0.0.1:7897
+npm start --prefix services/netease-api-enhanced
+```
+
+另一个终端在仓库根目录设置.env：PROVIDER_MODE=netease、ALLOW_DEMO_AUTH=false、ENABLE_TEST_PAGE=true、DATA_DIR=.data/real-test、NETEASE_BASE_URL=http://127.0.0.1:3001，然后 `npm run dev`。不要对同一数据目录同时启动两个API实例。测试完成可Ctrl+C退出服务，并把ENABLE_TEST_PAGE恢复false。
+
+只读桥使用上游现有模块及Node内置HTTP，仅加载登录和数据读取端点，不暴露歌单修改/删除接口。原始第三方诊断输出可能包含Cookie，桥进程不输出这些内容，只返回安全错误。若需要上游网络代理，可在启动桥前设置NETEASE_OUTBOUND_PROXY；下载代理与业务请求代理分开。
