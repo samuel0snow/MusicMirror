@@ -109,7 +109,7 @@ export class NeteaseProvider implements MusicProvider {
     const results = await Promise.allSettled([
       optional('长期记录', () => this.cached(context, '/user/record', { ...params, type: '0' }, recordResponse, 10 * 60000)),
       optional('周记录', () => this.cached(context, '/user/record', { ...params, type: '1' }, recordResponse, 10 * 60000)),
-      optional('最近播放', () => this.cached(context, '/record/recent/song', { limit: '100' }, recentResponse, 5 * 60000)),
+      optional('最近播放', () => this.cached(context, '/record/recent/song', { limit: '300' }, recentResponse, 5 * 60000)),
       optional('喜欢列表', () => this.cached(context, '/likelist', params, likesResponse, 30 * 60000))
     ]);
     for (const result of results) if (result.status === 'rejected') throw result.reason;

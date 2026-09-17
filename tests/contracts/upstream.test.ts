@@ -22,7 +22,10 @@ test('real adapter protocol: account check, five endpoints, timestamp isolation,
     assert.ok(url.searchParams.get('timestamp')); assert.ok(!url.toString().includes('cookie'));
     if (url.pathname === '/login/status') return Response.json(accountPayload);
     if (url.pathname === '/user/record') return Response.json(body.type === '0' ? longPayload : weekPayload);
-    if (url.pathname === '/record/recent/song') return Response.json(recentPayload);
+    if (url.pathname === '/record/recent/song') {
+      assert.equal(body.limit, '300');
+      return Response.json(recentPayload);
+    }
     if (url.pathname === '/likelist') return Response.json(likesPayload);
     if (url.pathname === '/song/detail') return Response.json({ code: 200, songs: body.ids.split(',').map((id: string) => rawSong(Number(id))) });
     throw new Error('unexpected endpoint');
