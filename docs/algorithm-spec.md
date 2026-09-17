@@ -2,6 +2,8 @@
 
 设计依据：[完成指南](design/项目完成指南.md) 第6–13、24节。版本 `music-profile-mvp-1`；权重与阈值集中在 `packages/algorithms/src/config.ts`。
 
+真实双输入字段覆盖、导出方法与下一阶段算法决策见[双输入实测与画像决策](data-export-and-profile.md)。目前曲风/语言真实样本无覆盖，不能用现有指数推出旋律、人声、情绪或人格；本版保留为未校准的结构统计。
+
 ## 标准化与数学层
 
 同songId聚合有效计数，负/null/非数值忽略并warning，大有限计数保留且标记。长期合并后取正播放Top100。最近列表按events/unique来源处理，真实适配器默认unique，不把去重列表当完整事件频次。
