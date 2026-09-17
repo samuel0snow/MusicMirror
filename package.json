@@ -20,7 +20,8 @@
     "test": "node --import tsx --test tests/algorithms/*.test.ts tests/contracts/*.test.ts tests/integration/*.test.ts tests/e2e/*.test.ts",
     "smoke": "node scripts/smoke.mjs",
     "check": "npm run typecheck && npm test && npm run build && npm run smoke",
-    "export:account": "npm run build && node scripts/export-account.mjs"
+    "export:account": "npm run build && node scripts/export-account.mjs",
+    "enrich:account": "npm run build && node scripts/enrich-account.mjs"
   },
   "dependencies": {
     "fastify": "^5.12.5",

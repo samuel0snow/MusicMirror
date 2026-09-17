@@ -5,7 +5,8 @@ function coverage(songs: SongFeature[]) {
   return { total: songs.length, artists: count(s => s.artists.length > 0), album: count(s => !!s.album),
     duration: count(s => s.durationMs !== undefined && s.durationMs > 0),
     publishTime: count(s => !!s.publishTime && s.publishTime > 0),
-    styles: count(s => !!s.styleIds?.length), language: count(s => !!s.language), likedKnown: count(s => s.liked !== null) };
+    styles: count(s => !!s.styleIds?.length), language: count(s => !!s.language), bpm: count(s => !!s.bpm),
+    wikiPublishTime: count(s => s.wikiPublishTime !== undefined), likedKnown: count(s => s.liked !== null) };
 }
 
 /** Uses the normalized payload saved with this snapshot, never the latest mutable input. */
@@ -20,7 +21,7 @@ export function exportModules(snapshot: Snapshot, normalized: NormalizedData) {
   const favorite = snapshot.modules.recentFavorites.songs.map(item => ({ ...requireSong(item.songId),
     likedAt: item.likedAt, likedVerified: item.likedVerified, weight: 1 / snapshot.modules.recentFavorites.sampleSize }));
   return {
-    schemaVersion: 1, snapshotId: snapshot.snapshotId, createdAt: snapshot.createdAt,
+    schemaVersion: 2, snapshotId: snapshot.snapshotId, createdAt: snapshot.createdAt,
     algorithmVersion: snapshot.algorithmVersion,
     interpretation: { scores: 'uncalibrated_mvp', longWindow: 'upstream_top100_not_full_history',
       recentPlayCount: normalized.dataWindow.recentMode === 'unique' ? 'presence_not_frequency' : 'observed_events',
@@ -39,9 +40,11 @@ export function songsCsv(rows: Array<SongFeature & { weight: number; likedAt?: s
     return `"${text.replaceAll('"', '""')}"`;
   };
   const columns = ['songId', 'name', 'artistIds', 'artistNames', 'albumId', 'albumName', 'durationMs', 'publishTime',
-    'longPlayCount', 'weekPlayCount', 'recentPlayCount', 'appearedInRecent', 'liked', 'likedAt', 'weight', 'styleIds', 'language'];
+    'longPlayCount', 'weekPlayCount', 'recentPlayCount', 'appearedInRecent', 'liked', 'likedAt', 'weight', 'styleIds', 'language',
+    'styles', 'bpm', 'wikiPublishTime', 'recommendationTags', 'enrichment'];
   const values = rows.map(s => [s.songId, s.name, JSON.stringify(s.artists.map(a => a.artistId)), JSON.stringify(s.artists.map(a => a.name)),
     s.album?.albumId, s.album?.name, s.durationMs, s.publishTime, s.longPlayCount, s.weekPlayCount,
-    s.recentPlayCount, s.appearedInRecent, s.liked, s.likedAt, s.weight, JSON.stringify(s.styleIds ?? []), s.language]);
+    s.recentPlayCount, s.appearedInRecent, s.liked, s.likedAt, s.weight, JSON.stringify(s.styleIds ?? []), s.language,
+    JSON.stringify(s.styles ?? []), s.bpm, s.wikiPublishTime, JSON.stringify(s.recommendationTags ?? []), s.enrichment ? JSON.stringify(s.enrichment) : undefined]);
   return '\uFEFF' + [columns, ...values].map(row => row.map(cell).join(',')).join('\r\n') + '\r\n';
 }

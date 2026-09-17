@@ -4,6 +4,7 @@ import { AppError } from '../../common/errors.js';
 import { accountResponse, likesResponse, recordResponse, recentResponse, songsResponse, type RawSong, type RawCollection } from './contracts.js';
 import type { CollectionContext, MusicProvider } from './provider.js';
 import type { Store } from '../../database/store.js';
+import { parseWiki, wikiResponse } from './wiki.js';
 
 interface Options { baseUrl: string; store: Store; timeoutMs?: number; intervalMs?: number; retryMs?: number; fetch?: typeof fetch }
 export class NeteaseProvider implements MusicProvider {
@@ -92,7 +93,32 @@ export class NeteaseProvider implements MusicProvider {
         result.push(song);
       }
     }
-    return result;
+    return result.map(song => {
+      const fields = this.options.store.cacheGet(context.account.userId, `wiki-public-v1:${song.id}`) as ReturnType<typeof parseWiki> | undefined;
+      return fields ? { ...song, ...fields, publishTime: song.publishTime || fields.wikiPublishTime } : song;
+    });
+  }
+  async enrichDetails(songs: RawSong[], ids: string[], context: CollectionContext) {
+    const targets = new Set(ids), result: RawSong[] = [], warnings: string[] = [];
+    for (const song of songs) {
+      if (!targets.has(song.id)) { result.push(song); continue; }
+      try {
+        // Store only the allowlisted public fields: wiki also contains private listening history.
+        const key = `wiki-public-v1:${song.id}`;
+        let fields = this.options.store.cacheGet(context.account.userId, key) as ReturnType<typeof parseWiki> | undefined;
+        if (!fields) {
+          const body = await this.request('/song/wiki/info', { id: song.id }, context.cookie!, wikiResponse, context.signal);
+          fields = parseWiki(body, new Date().toISOString());
+          this.options.store.cacheSet(context.account.userId, key, fields, 7 * 86400000);
+        }
+        result.push({ ...song, ...fields, publishTime: song.publishTime || fields.wikiPublishTime });
+      } catch (error) {
+        context.signal.throwIfAborted();
+        if (error instanceof AppError && error.code === 'UPSTREAM_AUTH_EXPIRED') throw error;
+        warnings.push(`歌曲百科补全失败:${song.id}`); result.push(song);
+      }
+    }
+    return { songs: result, warnings };
   }
   async collect(context: CollectionContext): Promise<RawCollection> {
     if (!context.cookie) throw new AppError(409, 'ACCOUNT_NOT_BOUND', '请先绑定网易云账号');

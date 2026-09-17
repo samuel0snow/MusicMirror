@@ -9,7 +9,7 @@ export function aggregate(songs: SongFeature[], dimension: 'songs' | 'artists' |
     if (dimension === 'songs') identities = [{ id: s.songId, name: s.name }];
     if (dimension === 'artists') identities = s.artists.map(a => ({ id: a.artistId, name: a.name }));
     if (dimension === 'albums' && s.album) identities = [{ id: s.album.albumId, name: s.album.name }];
-    if (dimension === 'styles') identities = (s.styleIds ?? []).map(id => ({ id, name: id }));
+    if (dimension === 'styles') identities = (s.styleIds ?? []).map(id => ({ id, name: s.styles?.find(t => t.id === id)?.name ?? id }));
     if (dimension === 'languages' && s.language) identities = [{ id: s.language, name: s.language }];
     if (dimension === 'decades' && s.publishTime && Number.isFinite(new Date(s.publishTime).getTime())) {
       const decade = String(Math.floor(new Date(s.publishTime).getUTCFullYear() / 10) * 10);

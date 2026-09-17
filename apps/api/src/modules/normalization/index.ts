@@ -20,6 +20,14 @@ export function normalize(raw: RawCollection, selection?: FavoriteSelection): No
     if (song.publishTime && Number.isFinite(new Date(song.publishTime).getTime())) entry.publishTime = song.publishTime;
     if (song.styleIds) entry.styleIds = song.styleIds;
     if (song.language) entry.language = song.language;
+    if (song.styles) entry.styles = song.styles;
+    if (song.recommendationTags) entry.recommendationTags = song.recommendationTags;
+    if (song.bpm) entry.bpm = song.bpm;
+    if (song.wikiPublishTime !== undefined) {
+      entry.wikiPublishTime = song.wikiPublishTime;
+      if (!entry.publishTime) entry.publishTime = song.wikiPublishTime;
+    }
+    if (song.enrichment) entry.enrichment = song.enrichment;
     entry.metadataConfidence = (Number(entry.artists.length > 0) + Number(!!entry.album)) / 2;
     return entry;
   }

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { idSchema } from '../../../../../packages/contracts/src/index.js';
+import { idSchema, songSchema } from '../../../../../packages/contracts/src/index.js';
 export const rawSongSchema = z.object({
   id: idSchema, name: z.string().optional(),
   ar: z.array(z.object({ id: idSchema, name: z.string().optional() })).optional(),
@@ -7,7 +7,9 @@ export const rawSongSchema = z.object({
   al: z.object({ id: idSchema, name: z.string().optional() }).nullable().optional(),
   album: z.object({ id: idSchema, name: z.string().optional() }).nullable().optional(),
   dt: z.number().nonnegative().optional(), duration: z.number().nonnegative().optional(),
-  publishTime: z.number().optional(), styleIds: z.array(z.string()).optional(), language: z.string().optional()
+  publishTime: z.number().optional(), styleIds: z.array(z.string()).optional(), language: z.string().optional(),
+  styles: songSchema.shape.styles, recommendationTags: songSchema.shape.recommendationTags,
+  bpm: songSchema.shape.bpm, wikiPublishTime: songSchema.shape.wikiPublishTime, enrichment: songSchema.shape.enrichment
 });
 export type RawSong = z.infer<typeof rawSongSchema>;
 export const recordSchema = z.object({ song: rawSongSchema, playCount: z.unknown().optional() });

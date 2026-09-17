@@ -13,6 +13,10 @@ export const songSchema = z.object({
   longPlayCount: z.number().finite().nonnegative(), weekPlayCount: z.number().finite().nonnegative(),
   recentPlayCount: z.number().finite().nonnegative(), appearedInRecent: z.boolean(),
   liked: z.boolean().nullable(), styleIds: z.array(z.string()).optional(), language: z.string().optional(),
+  styles: z.array(z.object({ id: z.string(), name: z.string() })).optional(),
+  recommendationTags: z.array(z.object({ id: z.string(), name: z.string() })).optional(),
+  bpm: z.number().positive().max(400).optional(), wikiPublishTime: z.number().optional(),
+  enrichment: z.object({ source: z.literal('/song/wiki/info'), parserVersion: z.number(), collectedAt: z.string(), status: z.enum(['available', 'empty']) }).optional(),
   metadataConfidence: z.number().min(0).max(1)
 });
 export type SongFeature = z.infer<typeof songSchema>;

@@ -11,7 +11,7 @@ if (!existsSync(anonymousPath)) writeFileSync(anonymousPath, '', { flag: 'wx', m
 for (const method of ['log', 'info', 'debug', 'warn', 'error']) console[method] = () => {};
 const { cookieToJson } = require(join(root, 'util/index.js'));
 const request = require(join(root, 'util/request.js'));
-const names = ['login_qr_key', 'login_qr_create', 'login_qr_check', 'login_status', 'user_record', 'record_recent_song', 'likelist', 'song_detail', 'user_playlist', 'playlist_detail'];
+const names = ['login_qr_key', 'login_qr_create', 'login_qr_check', 'login_status', 'user_record', 'record_recent_song', 'likelist', 'song_detail', 'user_playlist', 'playlist_detail', 'song_wiki_summary', 'song_wiki_info', 'album'];
 const routes = new Map(names.map(name => ['/' + name.replaceAll('_', '/'), require(join(root, 'module', name + '.js'))]));
 const server = createServer(async (req, res) => {
   res.setHeader('content-type', 'application/json; charset=utf-8');
