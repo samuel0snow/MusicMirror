@@ -47,7 +47,7 @@ npm start
 
 测试包含纯算法、假上游协议、持久化/恢复/删除、以及微信按钮通过本地真实HTTP的端到端验证。`check`最后还运行`npm run smoke`：用临时数据库启动编译产物并完成登录、分析、双模块查询与删除，退出后清理临时数据。它不等于微信开发者工具视觉预览或真实账号兼容性测试。源码运行用tsx，编译后运行dist；不要同时启动二者占用同一端口/数据目录。
 
-## 切换真实适配器（留待后续账号验证）
+## 真实账号模式
 
 自行运行受信任的 Enhanced API 服务，然后配置：
 
@@ -57,6 +57,16 @@ ALLOW_DEMO_AUTH=false
 NETEASE_BASE_URL=http://127.0.0.1:3001
 ```
 
-重启后通过 `/auth/connect` 的JSON body传cookie；后端先验证登录，派发自有token。不要在命令历史、代码、测试或问题截图中保存真实Cookie。没有账号绑定时刷新会明确失败，绝不自动退回mock。
+优先二维码授权：设置`ENABLE_TEST_PAGE=true`与独立`DATA_DIR=.data/real-test`，启动后打开`http://127.0.0.1:3000/dev/real-account`扫码确认。已有有效浏览器会话会读取报告。API或上游进程停止时页面/扫码不可用，服务状态需要现场health检查，不把历史“已启动”当作当前事实。
 
-来源适配见 [services接入说明](../services/netease-api-enhanced/README.md)。本次仅阅读公开文档并用本地合成协议验证；真实字段、权限和收藏时间需要后续核验。
+上游初次安装使用代理：`npm ci --prefix services/netease-api-enhanced --omit=dev --ignore-scripts --proxy=http://127.0.0.1:7897 --https-proxy=http://127.0.0.1:7897`；在单独终端执行`npm start --prefix services/netease-api-enhanced`。根目录另启API，不能对同一数据目录同时开两个API。
+
+备用绑定可通过 `/auth/connect` 的JSON body传cookie；后端先验证登录，派发自有token。不要在命令历史、代码、测试或问题截图中保存真实Cookie。没有账号绑定时刷新会明确失败，绝不自动退回mock。
+
+来源适配见 [services接入说明](../services/netease-api-enhanced/README.md)。真实扫码、基础采集、百科、红心时间已有实验；自动化回归仍使用合成数据，真实兼容性范围见[最新账号探索](research/account-api-exploration-2026-09-18.md)。
+
+## 数据整理、导出与研究
+
+`npm run data:organize`整理历史散落文件；`npm run export:account`导出最近已保存快照；`npm run enrich:account -- .data/real-test <snapshotId>`补百科字段，受原始响应TTL限制。具体语义见[目录说明](test-data-layout.md)与[补全指南](metadata-enrichment.md)。
+
+研究时在上游终端设置`READ_ONLY_EXPLORATION=true`再启动桥，根目录执行`npm run explore:account`。输出在`.data/real-test/explorations/<时间>/`，逐接口响应投影加密保存，summary记录响应状态与抽样字段结构；不是新的画像快照。独立研究文件需自行管理保留/清理，探索不等于全部字段已纳入正式采集。

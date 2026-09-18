@@ -1,6 +1,8 @@
 # 双输入实测导出与画像算法决策
 
-后续字段补全已取得曲风/语种/BPM，覆盖率与新导出位置见[歌曲字段补全](metadata-enrichment.md)。下文0覆盖率保留为补全前首轮证据；不代表当前补全快照的覆盖率。
+> ?????2026-09-17??????????????????????????????[????](../README.md)?[????](../data-requirements-and-api.md)?[????](../development.md)?
+
+后续字段补全已取得曲风/语种/BPM，覆盖率与新导出位置见[歌曲字段补全](../metadata-enrichment.md)。下文0覆盖率保留为补全前首轮证据；不代表当前补全快照的覆盖率。
 
 ## 先确认数据：2026-09-17
 
@@ -41,7 +43,7 @@ npm run export:account -- .data/real-test
 
 本轮导出验证：JSON与CSV逐首ID/艺人一致，100/50条，权重各自和为1，50条红心验证为true，交集独立重算为8。导出不含账户ID、Cookie、token；歌曲偏好仍属于私人数据，文件只留在忽略提交的`.data`下。
 
-复现配置：登录后向`PUT /inputs/recent-favorites`提交`{"items":[{"songId":"歌曲ID","likedAt":null}]}`（最多50首），再调用`POST /analysis/refresh`，等待run完成后导出。本轮候选列表保存在`.data/real-test/inputs/recent-red-heart/input2-selection.json`。更换输入不会追溯修改旧快照。核验及探测位置见[测试目录说明](test-data-layout.md)。
+复现配置：登录后向`PUT /inputs/recent-favorites`提交`{"items":[{"songId":"歌曲ID","likedAt":null}]}`（最多50首），再调用`POST /analysis/refresh`，等待run完成后导出。本轮候选列表保存在`.data/real-test/inputs/recent-red-heart/input2-selection.json`。更换输入不会追溯修改旧快照。核验及探测位置见[测试目录说明](../test-data-layout.md)。
 
 ## 根据实测确定算法方向
 

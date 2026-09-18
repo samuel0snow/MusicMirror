@@ -12,6 +12,11 @@ for (const method of ['log', 'info', 'debug', 'warn', 'error']) console[method] 
 const { cookieToJson } = require(join(root, 'util/index.js'));
 const request = require(join(root, 'util/request.js'));
 const names = ['login_qr_key', 'login_qr_create', 'login_qr_check', 'login_status', 'user_record', 'record_recent_song', 'likelist', 'song_detail', 'user_playlist', 'playlist_detail', 'song_wiki_summary', 'song_wiki_info', 'album'];
+if (process.env.READ_ONLY_EXPLORATION === 'true') names.push('user_subcount', 'user_level', 'artist_sublist', 'album_sublist',
+  'song_like_check', 'artist_detail', 'artist_album', 'artist_top_song', 'simi_artist', 'album_detail', 'playlist_track_all',
+  'playlist_detail_dynamic', 'style_list', 'style_detail', 'style_preference', 'style_song', 'style_album', 'style_artist',
+  'music_first_listen_info', 'listen_data_total', 'listen_data_report', 'listen_data_realtime_report', 'listen_data_song_play_rank',
+  'listen_data_year_report', 'listen_data_today_song', 'song_red_count', 'record_recent_album', 'record_recent_playlist');
 const routes = new Map(names.map(name => ['/' + name.replaceAll('_', '/'), require(join(root, 'module', name + '.js'))]));
 const server = createServer(async (req, res) => {
   res.setHeader('content-type', 'application/json; charset=utf-8');

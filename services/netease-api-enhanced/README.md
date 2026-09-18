@@ -4,7 +4,7 @@
 
 后端通过NETEASE_BASE_URL连接你自行部署的服务；本阶段mock可独立运行，因此无需立即安装上游或Docker。
 
-首次真实测试现在提供独立package.json/lock及start.cjs，只读HTTP桥绑定127.0.0.1:3001，使用固定上游4.40.1。安装/启动见 [首次测试说明](../../docs/real-account-test.md)。桥仅注册二维码登录、账户验证、播放记录、喜欢、歌曲详情和歌单读取；不暴露上游写操作，不启用其完整Web服务器，也不重复引入二维码依赖。
+首次真实测试现在提供独立package.json/lock及start.cjs，只读HTTP桥绑定127.0.0.1:3001，使用固定上游4.40.1。安装/启动见 [首次测试说明](../../docs/history/real-account-test-2026-09-17.md)。桥仅注册二维码登录、账户验证、播放记录、喜欢、歌曲详情和歌单读取；不暴露上游写操作，不启用其完整Web服务器，也不重复引入二维码依赖。
 
 当前适配：`/login/status`、`/user/record`（type=0长期、type=1周）、`/record/recent/song`、`/likelist`、`/song/detail`。POST body传Cookie，URL附唯一timestamp，避免上游按相同URL缓存时混淆不同请求。用户私有缓存以内部用户ID隔离，歌曲详情50个一批、30天缓存。
 
@@ -12,4 +12,8 @@
 
 真实最近播放按unique来源处理，不能假定为完整播放事件。红心时间/顺序未验证，因此输入2当前使用显式选择；自动近期红心来源留待后续测试。
 
-自动化回归中的账号、Cookie、歌曲和响应均为合成数据。后续已按用户授权执行真实扫码、采集及歌曲百科补全，证据见 [首次测试说明](../../docs/real-account-test.md) 与 [字段补全](../../docs/metadata-enrichment.md)。只读桥额外开放`/song/wiki/info`、`/song/wiki/summary`和`/album`；百科补全只保存允许的公开字段投影。
+自动化回归中的账号、Cookie、歌曲和响应均为合成数据。后续已按用户授权执行真实扫码、采集及歌曲百科补全，证据见 [首次测试说明](../../docs/history/real-account-test-2026-09-17.md) 与 [字段补全](../../docs/metadata-enrichment.md)。只读桥额外开放`/song/wiki/info`、`/song/wiki/summary`和`/album`；百科补全只保存允许的公开字段投影。
+
+## 当前更新
+
+安装与启动以[开发指南](../../docs/development.md)为准。红心at已受控验证为当前记录最近加入时间；自动来源尚未接入。READ_ONLY_EXPLORATION=true才开放额外列明的研究只读端点，默认关闭扩展，不注册写操作。范围见[探索记录](../../docs/research/account-api-exploration-2026-09-18.md)。
