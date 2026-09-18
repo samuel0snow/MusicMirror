@@ -43,6 +43,8 @@
 
 第三个样本musicTotalPlayDto.duration=124、text为另一种比喻，客户端显示“微风轻拂22320米”，依旧不能由比喻确认时长单位。即使duration数值与歌曲长度及播放数的乘积接近，也不能将估算当成实际收听证据。本机加密对照保存于reviews/listening-duration/children-of-the-city.encrypted.json；旧快照不变。
 
+账号持有人进一步确认第三个样本的三个额外字段：最多播放日为2024-10-02、当天5次（musicPlayMostDto.date/mostPlayedCount）；红心日期为2024-09-30（musicLikeSongDto.redTime）；常听时段为18—22点（musicFrequentListenDto.startTime/endTime）。这三项在本歌曲样本上已获得用户确认，不推广为全部歌曲覆盖。红心日期仍按当前红心记录最近加入时间解释；确认日期不证明首次红心。单曲duration单位不因这些行为字段验证而获得确认。
+
 实时报告会随新播放变化；之后核验应记录客户端观察时间，再查询同一周期。若客户端只显示取整小时，需保留取整误差，不能据此确认秒级精度。
 
 ## 本机复核
