@@ -39,7 +39,7 @@
 非空data包含songInfoDto、musicFirstListenDto、musicTotalPlayDto、musicLikeSongDto等：
 
 - `musicFirstListenDto.listenTime`为毫秒数，并有date/time/season/period文本；两个样本与百科summary FIRST_LISTEN.timestamp一致。
-- `musicTotalPlayDto.playCount`、`duration`提供另一个累计播放口径；duration单位及累计区间仍需确认，不能替代longPlayCount或与其他来源相加。
+- `musicTotalPlayDto.playCount`、`duration`提供另一个累计播放口径；duration已由账号持有人明确确认为分钟，累计区间与取整规则仍待确认，不能替代longPlayCount或与其他来源相加。
 - `musicLikeSongDto.like`、`collect`同时存在，可见红心与另一个集合状态是独立字段；collect具体涵盖哪些收藏/歌单行为尚未受控验证，不能仅凭字段名映射为自订歌单成员。
 - `musicLikeSongDto.redTimeStamp`在两个红心样本上与trackIds.at一致；昨天取消后重新点红心的受控样本也返回新at对应的redTimeStamp。它不能用作首次喜欢时间。
 - `musicPlayMostDto`、`musicMinoritySongDto`、`musicFrequentListenDto`在最初两个非空样本中是null；补充受控歌曲样本的musicPlayMostDto返回日期及mostPlayedCount=2，musicFrequentListenDto返回18至22时的常听时段，musicMinoritySongDto仍为null。可用性随歌曲而异，不由字段名推断覆盖率。
@@ -55,6 +55,8 @@
 周/月报告有topStyleBlock、topAgeBlock，月报告有topLanguageBlock；这些是摘要或少数样本，不是完整曲风/语言分布。topEmotionBlock为null，仍不支持宣称已取得可靠情绪特征。平台报告中人群比较文案也不是本项目校准后的百分位。
 
 ## 接入建议与复现
+
+最新状态：单曲musicTotalPlayDto.duration已获用户明确确认，单位为分钟；下述先前核验摘要中的“单曲待验”仅表示当时进度。累计区间和取整规则仍未知，不能推广分钟单位到其他端点。
 
 后续客户端核验：周报2小时8分钟、8月8小时55分钟与汇总128、535一致，对应周/月汇总按分钟计。周报差异来自30分钟播客。2025年度客户端202小时、1954首，与年度playDuration按秒换算后的202小时31分4秒及playNum=1954相符；年度时长仅核验到整小时显示精度，计数是否去重仍未知。累计客户端675小时51分钟与totalDuration按秒换算后的675小时51分38秒相符，累计范围和内容类型未确认。单曲字段单位仍独立待验，详见[时长核验](listening-duration-verification-2026-09-18.md)。
 
