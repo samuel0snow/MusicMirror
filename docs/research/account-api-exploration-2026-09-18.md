@@ -42,7 +42,7 @@
 - `musicTotalPlayDto.playCount`、`duration`提供另一个累计播放口径；duration单位及累计区间仍需确认，不能替代longPlayCount或与其他来源相加。
 - `musicLikeSongDto.like`、`collect`同时存在，可见红心与另一个集合状态是独立字段；collect具体涵盖哪些收藏/歌单行为尚未受控验证，不能仅凭字段名映射为自订歌单成员。
 - `musicLikeSongDto.redTimeStamp`在两个红心样本上与trackIds.at一致；昨天取消后重新点红心的受控样本也返回新at对应的redTimeStamp。它不能用作首次喜欢时间。
-- `musicPlayMostDto`、`musicMinoritySongDto`、`musicFrequentListenDto`在本次非空样本中是null，字段名不能作为功能已可用的证据。
+- `musicPlayMostDto`、`musicMinoritySongDto`、`musicFrequentListenDto`在最初两个非空样本中是null；补充受控歌曲样本的musicPlayMostDto返回日期及mostPlayedCount=2，musicFrequentListenDto返回18至22时的常听时段，musicMinoritySongDto仍为null。可用性随歌曲而异，不由字段名推断覆盖率。
 
 首次收听时间是上游记录可见的首次，不保证用户一生中或其他平台的首次。三首非空样本不足以证明全部100/50首均可用，下一步应批量补全并登记覆盖率，而非给缺失歌曲编时间。
 
