@@ -37,4 +37,6 @@ npm run export:account
 
 ## 只读研究输出
 
+reviews/song-memory-coverage/<查询时间>/保存一次双模块歌曲听歌记忆覆盖核验；summary.json列出分模块和去重集合的覆盖数量，responses.encrypted.json保存逐曲私人投影。complete=true才表示所有目标歌曲已查询；它不是新快照，不改写旧CSV或JSON。
+
 explorations/<ISO查询时间>/标识一次研究：summary.json保存状态和结构，编号encrypted.json保存加密投影，completed.json记录完成。它与exports的快照UUID分别标识研究与不可变分析结果，不互相覆盖。私人投影需本机密钥读取，手动清理。

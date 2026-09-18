@@ -49,6 +49,8 @@
 
 ## 本机复核
 
+已另完成长期100首与红心50首的全部去重歌曲接口覆盖核验，详细分母及缺失分类见[142首覆盖率](song-memory-coverage-2026-09-18.md)。单曲duration有140首返回，但单位仍未知。
+
 `node scripts/review-listening-duration.mjs`读取本机探索投影，输出按内容类型合计，保存reviews/listening-duration/api-baseline.json。不输出凭证或歌曲列表，不改变快照；结构摘要与对照值仍属于私人本机文件。源码默认使用本次证据目录，可通过第二个参数指定其他探索目录。
 
 周/月汇总、2025年度及累计时长单位已完成客户端对照；单曲记忆单位、累计统计范围及窗口边界仍待验证。研究范围见[账号探索](account-api-exploration-2026-09-18.md)。

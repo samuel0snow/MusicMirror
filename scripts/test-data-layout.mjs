@@ -8,7 +8,7 @@ export const diagnosticScripts = ['configure-input2.ts', 'inspect.ts', 'probe-fi
 export const qrFiles = ['login-qr.png', 'qr-attempt.json'];
 
 export function ensureTestDataLayout(dataDir) {
-  for (const dir of ['exports', 'explorations', 'reviews/red-heart-time', 'inputs/recent-red-heart', 'diagnostics/wiki', 'diagnostics/scripts', 'temporary/qr'])
+  for (const dir of ['exports', 'explorations', 'reviews/red-heart-time', 'reviews/song-memory-coverage', 'inputs/recent-red-heart', 'diagnostics/wiki', 'diagnostics/scripts', 'temporary/qr'])
     mkdirSync(join(dataDir, dir), { recursive: true });
   writeFileSync(join(dataDir, 'README.md'), `# 本机真实测试数据
 
@@ -17,6 +17,7 @@ export function ensureTestDataLayout(dataDir) {
 - exports/latest.json：最后一次成功导出的索引；createdAt 是快照创建时间，exportedAt 是导出时间。
 - explorations/<查询时间>/：只读研究的加密投影、结构摘要和完成标记，不是分析快照。
 - reviews/red-heart-time/：实时红心时间/顺序核验，可能在快照之后发生，不属于旧快照。
+- reviews/song-memory-coverage/<查询时间>/：按导出双模块歌曲去重的听歌记忆覆盖率；summary为聚合，响应投影加密保存。
 - inputs/recent-red-heart/：本轮选择列表与选择依据。
 - diagnostics/wiki/：临时百科响应探测。
 - diagnostics/scripts/：本轮开发诊断脚本，不是产品入口。

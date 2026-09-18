@@ -23,7 +23,8 @@
     "export:account": "npm run build && node scripts/export-account.mjs",
     "enrich:account": "npm run build && node scripts/enrich-account.mjs",
     "data:organize": "node scripts/organize-test-data.mjs",
-    "explore:account": "npm run build && node scripts/explore-account.mjs"
+    "explore:account": "npm run build && node scripts/explore-account.mjs",
+    "verify:memory": "npm run build && node scripts/verify-song-memory-coverage.mjs"
   },
   "dependencies": {
     "fastify": "^5.12.5",
