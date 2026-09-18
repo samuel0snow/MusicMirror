@@ -24,7 +24,8 @@
     "enrich:account": "npm run build && node scripts/enrich-account.mjs",
     "data:organize": "node scripts/organize-test-data.mjs",
     "explore:account": "npm run build && node scripts/explore-account.mjs",
-    "verify:memory": "npm run build && node scripts/verify-song-memory-coverage.mjs"
+    "verify:memory": "npm run build && node scripts/verify-song-memory-coverage.mjs",
+    "analyze:aesthetic": "npm run build && node scripts/analyze-aesthetic.mjs"
   },
   "dependencies": {
     "fastify": "^5.12.5",

@@ -5,7 +5,7 @@
 1. [产品规范](product-spec.md)：两个模块的目标、红心与歌单的区别。
 2. [数据需求与接口能力](data-requirements-and-api.md)：需要什么、当前接入什么、候选来源与解释边界。
 3. [最新账号探索](research/account-api-exploration-2026-09-18.md)、[时长核验](research/listening-duration-verification-2026-09-18.md)及[142首覆盖率](research/song-memory-coverage-2026-09-18.md)：真实字段、统计口径与批量覆盖，客户端确认单独登记。
-4. [算法规范](algorithm-spec.md)：当前数学层、六指数、权重及版本。
+4. [审美算法设计](aesthetic-algorithm-design.md)：12类总结、现有/增强双版本、设计理由与运行；[旧版算法规范](algorithm-spec.md)说明现有后端六指数。
 5. [开发指南](development.md)：运行、登录、导出、探索与验证。
 
 ## 文件职责

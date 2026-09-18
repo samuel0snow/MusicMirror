@@ -1,5 +1,7 @@
 # 真实测试数据目录
 
+analyses/aesthetic-v2/<计算时间>/是一次派生审美计算：report.json完整结果、report.md可读画像、input-manifest.json来源和单位、legacy-indices.json旧指数参考。latest.json仅索引最新计算，既不是快照UUID，也不是新采集时间；不改写exports或reviews。输出含私人信息，仅留本机。
+
 此前一次性诊断脚本将核验JSON放在数据根目录，而正式导出脚本写入exports，缺少统一约定。现在按用途整理；数据库、密钥保持原位，文件未删除。
 
 ```text

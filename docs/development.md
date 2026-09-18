@@ -1,5 +1,9 @@
 # 本地启动与全链路验证
 
+## 新版审美算法计算
+
+执行npm run analyze:aesthetic读取已有双输入快照和本机完整记忆覆盖资料，生成12类现有/增强双版本结果，不需要重新登录。输出见.data/real-test/analyses/aesthetic-v2/latest.json所指目录。可选增强输入用npm run analyze:aesthetic -- .data/real-test <增强JSON文件>传入，结构与设计理由见[审美算法设计](aesthetic-algorithm-design.md)。当前后端仍使用旧六指数，新引擎可以通过designAesthetic库函数调用。
+
 ## 环境
 
 Node.js >=22.13、npm。在仓库根目录运行。依赖安装使用代理，不更改全局npm设置：

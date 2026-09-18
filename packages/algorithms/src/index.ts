@@ -4,6 +4,8 @@ import { aggregate } from './distributions/aggregate.js';
 import { clamp, effectiveSize, entropy, hhi, jsd, normalizedEntropy, probabilities, retention, sum, topShare } from './features/math.js';
 export * from './features/math.js';
 export { algorithmConfig } from './config.js';
+export { designAesthetic, aestheticVersion, aestheticConfig } from './aesthetic/index.js';
+export type { AestheticInput, AestheticReport, AestheticCard, Variant } from './aesthetic/index.js';
 
 export function analyze(data: NormalizedData): Analysis {
   const long = data.songs.filter(s => s.longPlayCount > 0).sort((a, b) => b.longPlayCount - a.longPlayCount || a.songId.localeCompare(b.songId)).slice(0, 100);

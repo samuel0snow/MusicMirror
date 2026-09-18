@@ -1,5 +1,7 @@
 # 算法与解释规范
 
+本文件描述仍在现有后端使用的music-profile-mvp-1。新增music-aesthetic-2.0的12类双版本算法、理由和实际输出见[审美算法设计](aesthetic-algorithm-design.md)，两版独立，不追溯覆盖旧快照。
+
 设计依据：[完成指南](design/项目完成指南.md) 第6–13、24节。版本 `music-profile-mvp-1`；权重与阈值集中在 `packages/algorithms/src/config.ts`。
 
 真实双输入字段覆盖、导出方法与下一阶段算法决策见[双输入实测与画像决策](history/input-export-and-profile-2026-09-17.md)。首轮曲风/语言无覆盖，后续已通过[百科补全](metadata-enrichment.md)取得平台标签及语种；它们可进入相应分布统计，仍不能用现有指数推出旋律、人声、情绪或人格。本版保留为未校准的结构统计。

@@ -1,5 +1,7 @@
 # MusicMirror
 
+审美算法music-aesthetic-2.0已提供12类现有/增强双版本计算。设计、理由与输入要求见[算法设计](docs/aesthetic-algorithm-design.md)，已有真实资料可执行npm run analyze:aesthetic输出本机画像。
+
 **你的歌单，比你更了解你的音乐审美。** 观察长期反复听什么、最近主动喜欢什么，以及两者的延续与变化。
 
 项目依据：[完成指南](docs/design/项目完成指南.md)、[输入设计](docs/design/输入数据设想.png)、[宣传方向](docs/design/项目宣传点.md)。当前提供后端与微信原生按钮调用层；GUI后续制作，已有真实扫码、基础采集、百科补全与红心行为验证。阅读入口见[文档导航](docs/README.md)。
