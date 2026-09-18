@@ -9,3 +9,4 @@ dist/
 coverage/
 *.log
 project.private.config.json
+docs/design

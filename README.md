@@ -9,7 +9,7 @@
 需要 Node.js >=22.13（本机验证版本见推进记录）。在仓库根目录执行：
 
 ```powershell
-npm ci --proxy=http://127.0.0.1:7897 --https-proxy=http://127.0.0.1:7897
+npm ci --proxy=http://127.0.0.1 --https-proxy=http://127.0.0.1
 Copy-Item .env.example .env
 npm run dev
 ```
