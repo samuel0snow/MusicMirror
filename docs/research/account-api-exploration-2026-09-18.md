@@ -50,7 +50,7 @@
 
 本次不填endTime，周report/rank返回北京时间2026-09-06 00:00至09-12 00:00；月report/rank返回2026-08-01 00:00至08-31 00:00。realtime周/月则从09-13/09-01起，到查询时刻。端点可能分别面向已完成周期与进行中周期，在线文档的“当前周/月”不能直接替代实际窗口。结束端是否包含当日仍需核验，不把边界补成09-01。
 
-数据一致性也需先处理：周report的listenTimeBlock.playDuration与每日duration之和为98，distribution.playDuration为128；实时月每日之和564，汇总593。不能自动修平或把不同块合并为同一音乐时长。月报告的听歌最久文本提示分钟口径，但totalDuration、首听duration、sections内数值仍可能采用不同单位；尚不做全局单位换算。
+进一步按内容类型核对后，两处差异已解释：周report音乐每日duration之和98，podcastDuration之和30，audiobookDuration为0，总计128与distribution.playDuration一致；实时月音乐564、播客29、有声书0，总计593与汇总一致。音乐时长和全内容收听时长应分开，不能把播客并入音乐画像权重。周报文本明确出现“共收听96分钟”，月报文本出现“听了238分”，支持对应日时长按分钟解释；仍等待客户端对照。totalDuration、年度playDuration、首听duration、sections内数值不能据此全局统一单位。
 
 周/月报告有topStyleBlock、topAgeBlock，月报告有topLanguageBlock；这些是摘要或少数样本，不是完整曲风/语言分布。topEmotionBlock为null，仍不支持宣称已取得可靠情绪特征。平台报告中人群比较文案也不是本项目校准后的百分位。
 
