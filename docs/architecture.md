@@ -17,7 +17,7 @@
 长期重复聆听结构               近期主动审美选择
        └──────────────┬────────────────┘
                       ↓
-              数学特征 → 六大行为指数
+        特征与关系 → 12类审美卡片（base/enhanced）
                       ↓
               冻结 Snapshot → 变化检测
                       ↓
@@ -36,10 +36,10 @@
 | metadata | 歌曲、歌手、专辑及曲风元数据补全 |
 | normalization | 将原始响应转换为内部标准化模型 |
 | features | 编排数学特征计算，调用 algorithms |
-| metrics | 编排六大行为指数计算，调用 algorithms |
+| metrics | 历史六指数兼容；新快照不再执行 |
 | snapshots | 冻结、保存、查询快照及历史序列 |
 | insights | 编排变化分析，调用 algorithms 和 insight-engine |
-| reports | 汇总事实、分布、指数、置信度与解释，提供前端 API |
+| reports | 汇总审美卡片、事实、覆盖、限制与双版本，提供前端 API |
 
 `jobs` 负责异步任务入口，业务过程交给上述模块；`database` 负责持久化访问。外部 API 接入模块不包含行为算法。
 
@@ -48,13 +48,11 @@
 | 包 | 使用方 | 边界 |
 | --- | --- | --- |
 | contracts | miniapp、api、algorithms、insight-engine、ui-shared | 标准化模型、API 请求响应、校验契约；不依赖应用 |
-| algorithms | api、insight-engine | 纯函数计算特征、六大指数、分布、变化、校准；不依赖 HTTP、数据库或应用 |
+| algorithms | api、insight-engine | 纯函数计算分布、关系、12类双版本卡片及变化；保留历史六指数读取代码，不依赖 HTTP、数据库或应用 |
 | insight-engine | api | 基于计算结果生成有证据的洞察和文案；不负责采集或持久化 |
 | ui-shared | miniapp | 展示格式化与视觉规范；不承担业务计算 |
 
-六大指数分别是集中度、深听度、广度、探索度、稳定度、收藏—实播一致度。统一归入 `algorithms/src/metrics`，实现阶段再按指数拆文件。
-
-当前物理实现将指数编排放在 `packages/algorithms/src/index.ts`，参数在config.ts、数学函数在features、聚合在distributions；后续再按指数拆metrics文件。API路由在app.ts，collector调用这些纯函数；元数据批量补全在netease-api/http.ts，insight-engine直接生成洞察。表中的其他服务目录保留为后续拆分边界，不为本地链路强行添加空服务层。
+新算法位于`packages/algorithms/src/aesthetic`：输入契约、数学层、阈值、12类编排和快照适配分开。collector直接运行新引擎；旧六指数代码仅供历史快照/旧测试兼容，不进入新快照计算。API路由在app.ts，单卡通过`/analysis/card/:cardId`读取；insight-engine使用卡片summary生成洞察。
 
 小程序只通过自有后端获取报告和刷新状态；网易云会话与采集逻辑由后端管理。共享包不得反向依赖 `apps`，两个应用不互相导入源码。
 

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { analyze } from '../../packages/algorithms/src/index.js';
+import { analyzeLegacy as analyze } from '../../packages/algorithms/src/index.js';
 import { aggregate } from '../../packages/algorithms/src/distributions/aggregate.js';
 import { buildModules } from '../../packages/algorithms/src/favorites.js';
 import { demoCollection } from '../../apps/api/src/modules/netease-api/mock.js';

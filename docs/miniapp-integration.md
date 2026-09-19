@@ -32,7 +32,7 @@ Page({
 | onRefreshAnalysis / onResumeAnalysis | 刷新保存runId、轮询状态、获取report；恢复读取已有runId |
 | onLoadOverview / onLoadLongTerm / onLoadRecentFavorites | 总览及两个独立模块 |
 | onLoadStructure / onLoadPreferences | 结构与偏好视图 |
-| onOpenMetric | dataset.metricKey |
+| onOpenCard | dataset.cardId（12类审美卡片ID之一） |
 | onLoadHistory | dataset.limit、dataset.offset，可省略 |
 | onOpenSnapshot | dataset.snapshotId |
 | onCompareSnapshots | dataset.from、dataset.to |

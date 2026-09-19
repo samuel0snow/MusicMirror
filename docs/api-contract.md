@@ -16,30 +16,31 @@
 | 读取输入 | GET /inputs/recent-favorites | selection或null |
 | 看看我到底喜欢什么/刷新 | POST /analysis/refresh `{idempotencyKey?}` | 202、runId、status |
 | 进度/恢复等待 | GET /analysis/runs/:id | queued/processing/completed/failed/cancelled |
-| 总览 | GET /analysis/latest | 完整Snapshot，含modules双模块 |
+| 总览 | GET /analysis/latest | 完整Snapshot，主结果为aesthetic.cards十二类双版本，含modules双输入兼容视图 |
 | 长期结构 | GET /analysis/modules/long-term | snapshotId、createdAt、长期模块 |
 | 近期收藏 | GET /analysis/modules/recent-favorites | snapshotId、createdAt、收藏模块 |
 | 我的结构 | GET /analysis/structure | facts、songs、artists、albums、核心集合 |
 | 我的偏好 | GET /analysis/preferences | 收藏模块及可靠风格/语言/年代分布、覆盖率 |
 | 历史 | GET /analysis/history?limit=20&offset=0 | items、limit、offset、hasMore；limit≤100 |
 | 某次快照 | GET /analysis/snapshot/:id | 不可变快照 |
-| 指数详情 | GET /analysis/metric/:metricKey | value/raw/confidence/factors/reason/algorithmVersion |
-| 对比 | GET /analysis/compare?from=ID&to=ID | 核心进出、份额、同版本指数差 |
-| 变化/趋势 | GET /analysis/trends?days=30 | days可为30/90/all；至少3点才描述趋势 |
+| 审美卡片 | GET /analysis/card/:cardId | 单张卡片的base/enhanced、facts、summaries、coverage、limitations、requiredData |
+| 旧指数详情 | GET /analysis/metric/:metricKey | 仅历史快照兼容；新快照返回410 LEGACY_METRIC_REPLACED |
+| 对比 | GET /analysis/compare?from=ID&to=ID | 同版本同选择规则的曲风JSD、选定重合变化、代表歌曲进出及卡片状态变化 |
+| 变化/趋势 | GET /analysis/trends?days=30 | days可为30/90/all；至少3个同版本同选择规则新快照才返回aesthetic趋势 |
 | 解绑 | DELETE /auth/binding | 取消采集、清理Cookie和私有缓存，保留报告 |
 | 删除全部 | DELETE /account/data | 取消采集，删除用户关联数据及会话 |
 
-metricKey：concentration/deepListening/breadth/exploration/stability/intentAlignment。快照/任务ID为UUID，歌曲ID为数字字符串。输入错误400，认证失败401，未找到/越权404，采集中修改输入409，冷却429。
+cardId：center/fingerprint/alignment/continuity/discovery/lifecycle/timeContext/ecology/periods/popularity/acoustic/trajectory。快照/任务ID为UUID，歌曲ID为数字字符串。输入错误400，认证失败401，未找到/越权404，旧接口被替换410，采集中修改输入409，冷却429。
 
 ## 任务、幂等和快照
 
 刷新先持久化任务再返回，按runId轮询，completed后读取snapshotId。运行中重复刷新返回同一任务；同用户同idempotencyKey返回原任务。默认60秒冷却，重复数据completed且unchanged=true，复用快照。失败返回安全error，可稍后重试。
 
-收藏输入保存后需刷新进入新快照，旧快照仍保持原输入。指数不足为null并解释reason。版本不同不比较指数或生成跨版本趋势。
+收藏输入保存后需刷新进入新快照，旧快照仍保持原输入。卡片数据不足时status=partial/unavailable，并列出requiredData和limitations。版本或选择规则不同不生成审美对比/趋势。
 
 ## 双模块输出
 
-`modules.longTermListening`：title、basis=play_count、sampleSize、facts、distributions、indexes、dataWindow、metrics、warnings。单独查询也能获得数据可用性与指数不足原因。
+主结果`aesthetic`：algorithmVersion、provenance、quality、cards、warnings。每张card均有base和enhanced两个Variant。`modules.longTermListening`继续提供输入事实/分布兼容视图；新快照indexes全部null、metrics明确指向卡片，不再执行旧六指数。
 
 `modules.recentFavorites`：title、basis=song_count、status、selectionSource、timeWindow、sampleSize、songs、distributions、longTermOverlapRate、newArtistRate、artistJsd、metadataCoverage、observations、warnings。
 

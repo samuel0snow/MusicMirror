@@ -16,7 +16,9 @@ export class Reports {
   compare(userId: string, from: string, to: string) { return compareSnapshots(this.snapshot(userId, from), this.snapshot(userId, to)); }
   history(userId: string, limit: number, offset: number) {
     const snapshots = this.store.snapshots(userId, limit + 1, offset);
-    return { items: snapshots.slice(0, limit).map(s => ({ snapshotId: s.snapshotId, createdAt: s.createdAt, algorithmVersion: s.algorithmVersion, indexes: s.indexes, confidence: s.confidence, modules: { longTermListening: { sampleSize: s.modules.longTermListening.sampleSize }, recentFavorites: { sampleSize: s.modules.recentFavorites.sampleSize, status: s.modules.recentFavorites.status } } })), limit, offset, hasMore: snapshots.length > limit };
+    return { items: snapshots.slice(0, limit).map(s => ({ snapshotId: s.snapshotId, createdAt: s.createdAt, algorithmVersion: s.algorithmVersion,
+      aesthetic:s.aesthetic?{cards:s.aesthetic.cards.map(card=>({id:card.id,status:card.base.status,coverage:card.base.coverage}))}:null,
+      modules: { longTermListening: { sampleSize: s.modules.longTermListening.sampleSize }, recentFavorites: { sampleSize: s.modules.recentFavorites.sampleSize, status: s.modules.recentFavorites.status } } })), limit, offset, hasMore: snapshots.length > limit };
   }
   trends(userId: string, days: '30' | '90' | 'all') {
     // Read all requested snapshots in pages, never silently truncate a user's timeline.

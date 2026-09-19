@@ -1,7 +1,7 @@
 import Fastify from 'fastify';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { z, ZodError } from 'zod';
-import { connectSchema, favoritesInputSchema, metricKeySchema, refreshSchema, type Account } from '../../../packages/contracts/src/index.js';
+import { aestheticCardIdSchema, connectSchema, favoritesInputSchema, metricKeySchema, refreshSchema, type Account } from '../../../packages/contracts/src/index.js';
 import { AppError, safeError } from './common/errors.js';
 import { loadConfig, type Config } from './config/index.js';
 import { Store } from './database/store.js';
@@ -111,7 +111,14 @@ export function buildApp(options: { config?: Config; store?: Store; provider?: M
   app.get('/analysis/metric/:metricKey', async request => {
     const { metricKey } = z.object({ metricKey: metricKeySchema }).parse(request.params);
     const snapshot = reports.latest(request.account!.userId);
+    if(snapshot.aesthetic)throw new AppError(410,'LEGACY_METRIC_REPLACED','旧六指数已由审美卡片替换，请使用 /analysis/card/:cardId');
     return { snapshotId: snapshot.snapshotId, createdAt: snapshot.createdAt, ...snapshot.metrics[metricKey] };
+  });
+  app.get('/analysis/card/:cardId',async request=>{
+    const {cardId}=z.object({cardId:aestheticCardIdSchema}).parse(request.params),snapshot=reports.latest(request.account!.userId);
+    const card=snapshot.aesthetic?.cards.find(row=>row.id===cardId);
+    if(!card)throw new AppError(404,'CARD_NOT_AVAILABLE','当前快照没有该审美卡片');
+    return {snapshotId:snapshot.snapshotId,createdAt:snapshot.createdAt,algorithmVersion:snapshot.algorithmVersion,...card};
   });
   app.get('/analysis/compare', async request => {
     const { from, to } = z.object({ from: z.uuid(), to: z.uuid() }).parse(request.query);

@@ -1,6 +1,6 @@
 'use strict';
 
-const initialState = () => ({ busy: false, error: null, account: null, bound: false, loginQr: null, runId: null, run: null, report: null, longTerm: null, recentFavorites: null, structure: null, preferences: null, metric: null, history: null, comparison: null, trends: null, favoriteItems: [] });
+const initialState = () => ({ busy: false, error: null, account: null, bound: false, loginQr: null, runId: null, run: null, report: null, longTerm: null, recentFavorites: null, structure: null, preferences: null, card: null, history: null, comparison: null, trends: null, favoriteItems: [] });
 
 /** Attach returned methods to a future Page; the page only needs data and setData. */
 function createActions(page, client, options) {
@@ -62,7 +62,7 @@ function createActions(page, client, options) {
     onLoadRecentFavorites: () => action(async update => { const value = await client.recentFavorites(); update({ recentFavorites: value }); return value; }),
     onLoadStructure: () => action(async update => { const value = await client.structure(); update({ structure: value }); return value; }),
     onLoadPreferences: () => action(async update => { const value = await client.preferences(); update({ preferences: value }); return value; }),
-    onOpenMetric: event => action(async update => { const value = await client.metric(data(event).metricKey); update({ metric: value }); return value; }),
+    onOpenCard: event => action(async update => { const value = await client.card(data(event).cardId); update({ card: value }); return value; }),
     onLoadHistory: event => action(async update => { const value = await client.history(data(event).limit, data(event).offset); update({ history: value }); return value; }),
     onOpenSnapshot: event => action(async update => { const report = await client.snapshot(data(event).snapshotId); update({ report, longTerm: report.modules.longTermListening, recentFavorites: report.modules.recentFavorites }); return report; }),
     onCompareSnapshots: event => action(async update => { const value = await client.compare(data(event).from, data(event).to); update({ comparison: value }); return value; }),

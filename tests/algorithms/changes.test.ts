@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import type { Snapshot } from '../../packages/contracts/src/index.js';
 import { compareSnapshots, trends } from '../../packages/algorithms/src/changes/compare.js';
-import { analyze } from '../../packages/algorithms/src/index.js';
+import { analyzeLegacy as analyze } from '../../packages/algorithms/src/index.js';
 import { buildModules } from '../../packages/algorithms/src/favorites.js';
 import { normalize } from '../../apps/api/src/modules/normalization/index.js';
 import { demoCollection } from '../../apps/api/src/modules/netease-api/mock.js';

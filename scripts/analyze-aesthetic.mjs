@@ -78,8 +78,6 @@ try {
   writeFileSync(join(output,'input-manifest.json'),JSON.stringify({snapshotId:report.snapshotId,coverageSource:coverageDir,
     coverage:coverage.union,explorationSource:explorationDir,contextSources:sources,units:{songCumulative:'minutes',period:'minutes',annual:'seconds',total:'seconds'},
     enhancedProvided:!!enhanced},null,2)+'\n');
-  writeFileSync(join(output,'legacy-indices.json'),JSON.stringify({algorithmVersion:exported.algorithmVersion,indexes:exported.input1.indexes,
-    note:'原快照的六个旧版结构指数仅作参考；不与新版12类画像混合打分。'},null,2)+'\n');
   const lines=['# 音乐审美画像',`算法：${report.algorithmVersion}；生成：${report.generatedAt}`,
     '长期按播放次数，选定红心按歌曲等权。画像数据来自不同观察时刻；不推断人格、心理或喜欢原因。',
     `共${report.cards.length}类结果。完整证据、覆盖率和双版本计算结果见同目录report.json。`];

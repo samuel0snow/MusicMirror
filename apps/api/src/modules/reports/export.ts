@@ -21,9 +21,10 @@ export function exportModules(snapshot: Snapshot, normalized: NormalizedData) {
   const favorite = snapshot.modules.recentFavorites.songs.map(item => ({ ...requireSong(item.songId),
     likedAt: item.likedAt, likedVerified: item.likedVerified, weight: 1 / snapshot.modules.recentFavorites.sampleSize }));
   return {
-    schemaVersion: 2, snapshotId: snapshot.snapshotId, createdAt: snapshot.createdAt,
+    schemaVersion: snapshot.aesthetic ? 3 : 2, snapshotId: snapshot.snapshotId, createdAt: snapshot.createdAt,
     algorithmVersion: snapshot.algorithmVersion,
-    interpretation: { scores: 'uncalibrated_mvp', longWindow: 'upstream_top100_not_full_history',
+    ...(snapshot.aesthetic?{aesthetic:snapshot.aesthetic}:{}),
+    interpretation: { primary: snapshot.aesthetic?'aesthetic_cards':'legacy_six_indexes', scores: snapshot.aesthetic?'legacy_indexes_disabled':'uncalibrated_mvp', longWindow: 'upstream_top100_not_full_history',
       recentPlayCount: normalized.dataWindow.recentMode === 'unique' ? 'presence_not_frequency' : 'observed_events',
       missingFromLong: 'not_in_top100_does_not_mean_never_played', unknownLikedAt: 'cannot_assign_recent_time_window' },
     input1: { ...snapshot.modules.longTermListening, songs: long, fieldCoverage: coverage(long) },

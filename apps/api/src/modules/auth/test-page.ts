@@ -19,7 +19,7 @@ async function api(path,method='GET',body){
 }
 function state(text){el('status').textContent=text;}
 function show(report){el('result').textContent=JSON.stringify({
- dataWindow:report.dataWindow, facts:report.facts, indexes:report.indexes, confidence:report.confidence,
+ algorithmVersion:report.algorithmVersion,dataWindow:report.dataWindow,aesthetic:report.aesthetic&&{quality:report.aesthetic.quality,cards:report.aesthetic.cards.map(card=>({id:card.id,title:card.title,status:card.base.status,coverage:card.base.coverage,summaries:card.base.summaries,enhancedStatus:card.enhanced.status,requiredData:card.enhanced.requiredData}))},
  recentFavorites:{status:report.modules.recentFavorites.status,sampleSize:report.modules.recentFavorites.sampleSize,timeWindow:report.modules.recentFavorites.timeWindow,warnings:report.modules.recentFavorites.warnings},
  warnings:report.warnings
 },null,2);}

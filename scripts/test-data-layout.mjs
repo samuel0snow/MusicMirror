@@ -16,7 +16,7 @@ export function ensureTestDataLayout(dataDir) {
 - exports/<snapshotId>/：某一条已保存分析快照的双输入导出。snapshotId 是 UUID，不是账号、歌单编号或时间。
 - exports/latest.json：最后一次成功导出的索引；createdAt 是快照创建时间，exportedAt 是导出时间。
 - explorations/<查询时间>/：只读研究的加密投影、结构摘要和完成标记，不是分析快照。
-- analyses/aesthetic-v2/<计算时间>/：私人派生审美JSON/Markdown、来源manifest和旧指数参考，不修改旧快照。
+- analyses/aesthetic-v2/<计算时间>/：私人派生审美JSON/Markdown和来源manifest，不修改旧快照。
 - reviews/red-heart-time/：实时红心时间/顺序核验，可能在快照之后发生，不属于旧快照。
 - reviews/song-memory-coverage/<查询时间>/：按导出双模块歌曲去重的听歌记忆覆盖率；summary为聚合，响应投影加密保存。
 - inputs/recent-red-heart/：本轮选择列表与选择依据。

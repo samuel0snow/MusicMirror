@@ -1,5 +1,13 @@
 # 全栈链路推进记录
 
+## 2026-09-19：新算法替换后端旧算法
+
+collector已改为直接运行music-aesthetic-2.0并将12类双版本卡片写入不可变快照；不再调用music-profile-mvp-1。新快照的六指数兼容字段全部为null并说明已替换，`/analysis/card/:cardId`成为详情入口；旧指标接口对新快照返回410，历史旧快照仍可读取。历史/对比/趋势、小程序client/controller、诊断页及导出均改为卡片结构；跨版本或选择规则不同的快照不生成审美对比。
+
+旧计算函数更名为analyzeLegacy，仅供历史算法测试；新导出和本机报告不再生成legacy-indices文件。常规provider未采集的首听记忆等字段按卡片返回unavailable，本机已授权研究资料仍可由analyze:aesthetic生成更完整报告，不把本机私人文件耦合进生产刷新。
+
+替换后`npm run check`通过41项测试、类型检查、构建和编译服务冒烟；全栈集成测试已覆盖新快照、卡片接口、旧指标410、选择口径隔离及审美对比。
+
 ## 2026-09-19：审美算法设计、编程与真实输出
 
 新增music-aesthetic-2.0纯计算引擎及analyze:aesthetic CLI，设计见[12类审美算法](aesthetic-algorithm-design.md)。每类输出base/enhanced、事实、解释、覆盖及缺失输入；完整日志、历史红心、音频、场景、流行度参照和可比轨迹对应的增强算法已实现，真实输入缺失时不激活。保留后端旧六指数及既有快照。

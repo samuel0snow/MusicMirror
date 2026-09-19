@@ -6,8 +6,10 @@ export * from './features/math.js';
 export { algorithmConfig } from './config.js';
 export { designAesthetic, aestheticVersion, aestheticConfig } from './aesthetic/index.js';
 export type { AestheticInput, AestheticReport, AestheticCard, Variant } from './aesthetic/index.js';
+export { analyzeAestheticSnapshot } from './aesthetic/snapshot.js';
 
-export function analyze(data: NormalizedData): Analysis {
+/** Historical music-profile-mvp-1 implementation. New snapshots use analyzeAestheticSnapshot. */
+export function analyzeLegacy(data: NormalizedData): Analysis {
   const long = data.songs.filter(s => s.longPlayCount > 0).sort((a, b) => b.longPlayCount - a.longPlayCount || a.songId.localeCompare(b.songId)).slice(0, 100);
   const recent = data.songs.filter(s => s.recentPlayCount > 0);
   const n = long.length, p = probabilities(long.map(s => s.longPlayCount));

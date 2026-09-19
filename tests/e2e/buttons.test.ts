@@ -31,15 +31,15 @@ test('native button controllers -> wx.request-compatible transport -> live HTTP 
   assert.equal(first.modules.longTermListening.sampleSize, 100); assert.equal(first.modules.recentFavorites.basis, 'song_count');
   assert.equal(page.data.busy, false);
   await actions.onLoadLongTerm(); await actions.onLoadRecentFavorites(); await actions.onLoadStructure(); await actions.onLoadPreferences(); await actions.onLoadOverview();
-  await actions.onOpenMetric({ currentTarget: { dataset: { metricKey: 'concentration' } } });
-  assert.equal(page.data.metric.key, 'concentration');
+  await actions.onOpenCard({ currentTarget: { dataset: { cardId: 'center' } } });
+  assert.equal(page.data.card.id, 'center');
   await actions.onSaveRecentFavorites({ detail: { items: [{ songId: '121' }, { songId: '123' }] } });
   provider.revision = 1;
   const second = await actions.onRefreshAnalysis(); assert.equal(second.modules.recentFavorites.sampleSize, 2);
   provider.revision = 2; await actions.onRefreshAnalysis();
   await actions.onLoadTrends({ currentTarget: { dataset: { days: 'all' } } }); assert.equal(page.data.trends.points.length, 3);
   await actions.onLoadHistory(); assert.equal(page.data.history.items.length, 3);
-  await actions.onCompareSnapshots({ currentTarget: { dataset: { from: first.snapshotId, to: second.snapshotId } } }); assert.ok(page.data.comparison.indexDeltas.concentration > 0);
+  await actions.onCompareSnapshots({ currentTarget: { dataset: { from: first.snapshotId, to: second.snapshotId } } }); assert.equal(page.data.comparison.kind,'aesthetic');assert.equal(page.data.comparison.comparable,false);
   await actions.onOpenSnapshot({ currentTarget: { dataset: { snapshotId: first.snapshotId } } }); assert.equal(page.data.recentFavorites.sampleSize, 25);
   await actions.onResumeAnalysis(); assert.equal(page.data.run.status, 'completed');
   await actions.onUnbindAccount(); assert.equal(page.data.bound, false);

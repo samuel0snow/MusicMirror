@@ -5,6 +5,11 @@ import { algorithmConfig as c } from '../../algorithms/src/config.js';
 export function generateInsights(current: Snapshot, previous?: Snapshot): Insight[] {
   const result: Insight[] = [];
   const add = (insight: Omit<Insight, 'id'>) => result.push({ ...insight, id: `${current.snapshotId}:${result.length}` });
+  if(current.aesthetic){
+    for(const card of current.aesthetic.cards.filter(c=>c.base.status!=='unavailable'&&c.base.summaries.length).slice(0,6))
+      add({type:'aesthetic_card',priority:50,confidence:card.base.coverage??0,title:card.base.summaries[0],evidence:[{metric:`card:${card.id}:status`,value:card.base.status}],templateKey:'aesthetic_card',params:{cardId:card.id}});
+    return result;
+  }
   if (previous) {
     const comparison = compareSnapshots(previous, current);
     for (const key of metricKeys) {

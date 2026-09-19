@@ -61,7 +61,7 @@ function createClient(options) {
     recentFavorites: () => request('GET', '/analysis/modules/recent-favorites'),
     structure: () => request('GET', '/analysis/structure'),
     preferences: () => request('GET', '/analysis/preferences'),
-    metric: key => request('GET', '/analysis/metric/' + encode(key)),
+    card: id => request('GET', '/analysis/card/' + encode(id)),
     history: (limit, offset) => request('GET', '/analysis/history?limit=' + encode(limit || 20) + '&offset=' + encode(offset || 0)),
     compare: (from, to) => request('GET', '/analysis/compare?from=' + encode(from) + '&to=' + encode(to)),
     trends: days => request('GET', '/analysis/trends?days=' + encode(days || 'all')),

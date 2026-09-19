@@ -20,6 +20,58 @@ export const songSchema = z.object({
   metadataConfidence: z.number().min(0).max(1)
 });
 export type SongFeature = z.infer<typeof songSchema>;
+export const aestheticCardIds = ['center','fingerprint','alignment','continuity','discovery','lifecycle','timeContext','ecology','periods','popularity','acoustic','trajectory'] as const;
+export type AestheticCardId = typeof aestheticCardIds[number];
+export const aestheticCardIdSchema = z.enum(aestheticCardIds);
+export interface AestheticMemory {
+  songId: string; observedAt: string; firstListenedAt?: number; cumulativePlayCount?: number;
+  cumulativeMinutes?: number; redHeartAt?: number; liked?: boolean;
+  mostPlayedAt?: number; mostPlayedCount?: number; frequentHours?: [number, number];
+}
+export interface AestheticPlayEvent { songId: string; at: number; listenedSeconds: number; completed: boolean }
+export interface AestheticAcousticFeature {
+  songId: string; source: string; validated: boolean;
+  melody?: number; rhythm?: number; vocalPresence?: number; arrangementDensity?: number;
+  valence?: number; energy?: number;
+}
+export interface AestheticPeriod {
+  source: string; startAt?: number; endAt?: number; observedAt: string;
+  musicMinutes?: number; podcastMinutes?: number; audiobookMinutes?: number; totalMinutes?: number;
+  songCounts?: Array<{songId: string; count: number}>;
+}
+export interface AestheticInput {
+  observedAt: string; snapshotId: string; snapshotCollectedAt: string;
+  longSongs: SongFeature[]; redHeartSongs: SongFeature[]; contextSongs: SongFeature[];
+  redHeartSelection: { source: string; timeWindow: string };
+  memories: AestheticMemory[];
+  context?: {
+    followedArtists?: string[]; subscribedAlbums?: string[];
+    playlists?: Array<{id: string; owned: boolean; songIds: string[]}>;
+    platformStyles?: Array<{id: string; name: string; ratio: string}>;
+    similarArtists?: Array<{seedArtistId: string; artistIds: string[]}>;
+    periods?: AestheticPeriod[]; years?: Array<{year: number; playNum: number; seconds: number}>;
+    totalSeconds?: number;
+  };
+  enhanced?: {
+    events?: {complete: boolean; source: string; startAt: number; endAt: number; items: AestheticPlayEvent[]};
+    redHeartHistory?: {complete: boolean; items: Array<{songId: string; at: number; action: 'like'|'unlike'}>};
+    acoustic?: AestheticAcousticFeature[];
+    popularity?: {matchedReference: boolean; observedAt: string; counts: Record<string, number>; reference: number[]};
+    declaredPlaylists?: Array<{id: string; scene: string; complete: boolean; songIds: string[]}>;
+    comparableProfiles?: Array<{version: string; collectedAt: string; comparabilityKey: string; styles: Record<string, number>}>;
+  };
+}
+export interface AestheticVariant {
+  status: 'available'|'partial'|'unavailable'; requiredData: string[]; method: string;
+  coverage: number|null; facts: Record<string, unknown>; summaries: string[]; limitations: string[];
+}
+export interface AestheticCard { id: string; title: string; purpose: string; base: AestheticVariant; enhanced: AestheticVariant }
+export interface AestheticReport {
+  algorithmVersion: string; snapshotId: string; generatedAt: string;
+  provenance: {snapshotCollectedAt: string; memoryObservedAt: string[]; redHeartSelection: AestheticInput['redHeartSelection'];
+    enhancedSources: {events: string|null; acoustic: string[]; popularityObservedAt: string|null}};
+  quality: Record<string, unknown>; cards: AestheticCard[]; warnings: string[];
+}
 export interface DataWindow {
   longRecordAvailable: boolean; weeklyRecordAvailable: boolean; recentRecordAvailable: boolean;
   likesAvailable: boolean; recentRecordSize: number; recentMode: 'events' | 'unique';
@@ -46,6 +98,8 @@ export interface Analysis {
 export interface Snapshot extends Analysis {
   snapshotId: string; userId: string; createdAt: string; checksum: string; insights: Insight[];
   modules: { longTermListening: ListeningModule; recentFavorites: FavoritesModule };
+  /** Present on music-aesthetic-2.0 snapshots. Absent on preserved legacy snapshots. */
+  aesthetic?: AestheticReport;
 }
 export interface FavoriteSelection {
   items: Array<{ songId: string; likedAt: string | null }>;
@@ -65,10 +119,12 @@ export interface FavoritesModule {
   observations: string[]; warnings: string[];
 }
 export interface Comparison {
-  fromSnapshotId: string; toSnapshotId: string; comparable: boolean;
+  fromSnapshotId: string; toSnapshotId: string; comparable: boolean; kind?: 'legacy'|'aesthetic';
   indexDeltas: Record<MetricKey, number | null>;
   newCoreSongs: string[]; exitedCoreSongs: string[]; newCoreArtists: string[]; exitedCoreArtists: string[];
   artistShareChanges: Array<{ id: string; before: number; after: number; delta: number }>;
+  aesthetic?: { styleJsd: number|null; selectedOverlapDelta: number|null;
+    cardStatusChanges: Array<{id:string;before:string;after:string}>; newRepresentativeSongs:string[]; exitedRepresentativeSongs:string[] };
 }
 export interface Run {
   runId: string; userId: string; status: 'queued' | 'processing' | 'completed' | 'failed' | 'cancelled';

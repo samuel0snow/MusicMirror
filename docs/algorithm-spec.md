@@ -1,6 +1,6 @@
 # 算法与解释规范
 
-本文件描述仍在现有后端使用的music-profile-mvp-1。新增music-aesthetic-2.0的12类双版本算法、理由和实际输出见[审美算法设计](aesthetic-algorithm-design.md)，两版独立，不追溯覆盖旧快照。
+本文件描述历史快照使用的music-profile-mvp-1。后端已由music-aesthetic-2.0替换；12类双版本算法、理由和实际输出见[审美算法设计](aesthetic-algorithm-design.md)。两版独立，旧快照仍可读取但不追溯覆盖。
 
 设计依据：[完成指南](design/项目完成指南.md) 第6–13、24节。版本 `music-profile-mvp-1`；权重与阈值集中在 `packages/algorithms/src/config.ts`。
 
