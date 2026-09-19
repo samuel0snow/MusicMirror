@@ -60,7 +60,7 @@
 
 ## 当前阶段
 
-本次目标为可运行的全栈链路，不制作 GUI，不测试真实账号。Fastify + TypeScript + Zod，Node.js >=22.13；SQLite 提供真实持久化和事务，单进程任务工作器的状态存入数据库，重启恢复未完成任务。PostgreSQL、Redis、Docker 在部署阶段再引入。
+后端与微信调用层已实现，并完成过真实扫码、采集及字段核验；验证范围见[研究记录](research/README.md)。[独立UI设计稿](ui-design/README.md)已交付，尚未接入小程序页面。技术栈为Fastify + TypeScript + Zod、Node.js >=22.13；SQLite提供持久化和事务，单进程任务工作器的状态存入数据库，重启恢复未完成任务。PostgreSQL、Redis、Docker仍属于后续部署选项。
 
 微信原生调用代码位于 `apps/miniapp/miniprogram/services` 与 `controllers`，不直接跨根目录导入共享 TS 包，通过 HTTP JSON 契约通信。页面注册、WXML/WXSS 和开发者工具配置由 GUI 阶段制作。
 

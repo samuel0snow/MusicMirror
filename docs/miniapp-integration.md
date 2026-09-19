@@ -1,6 +1,6 @@
 # 微信原生 GUI 接入
 
-本次不制作页面，只提供 `apps/miniapp/miniprogram/services/client.js` 和 `controllers/actions.js`。代码使用CommonJS和微信wx.request，不依赖Node、浏览器fetch或根目录外的TS源码。
+当前已实现 `apps/miniapp/miniprogram/services/client.js` 和 `controllers/actions.js`，尚未实现视觉页面。[独立UI设计与全流程图片](ui-design/README.md)可作为后续页面实现参考。调用层使用CommonJS和微信wx.request，不依赖Node、浏览器fetch或根目录外的TS源码。
 
 未来页面脚本可按以下方式接入（示例，不是已创建的GUI）：
 
