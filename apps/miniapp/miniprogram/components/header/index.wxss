@@ -1,0 +1,1 @@
+.header{padding-left:24rpx;color:var(--ink)}.nav{display:flex;align-items:center;font-size:28rpx;font-weight:600;white-space:nowrap;overflow:hidden}.back{background:transparent;color:var(--ink);min-width:88rpx;width:88rpx;font-size:48rpx;padding:0;line-height:1}.nav text{overflow:hidden;text-overflow:ellipsis}

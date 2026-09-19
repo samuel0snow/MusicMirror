@@ -1,0 +1,1 @@
+<view class="header" style="padding-top:{{top}}px;padding-right:{{right}}px"><view class="nav" style="height:{{height}}px"><button wx:if="{{back}}" class="back" bindtap="onBack" aria-label="返回">‹</button><text>{{title}}</text></view></view>

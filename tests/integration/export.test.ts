@@ -23,4 +23,11 @@ test('export keeps snapshot input and weighting, omits credentials, and escapes 
   assert.ok(csv.startsWith('\uFEFF'));
   assert.ok(csv.includes('"\'=1+1,""quoted""\nnext"'));
   assert.throws(() => exportModules(snapshot, { ...data, songs: [] }), /missing/);
+  const response = await f.app.inject({ url: `/analysis/snapshot/${snapshot.snapshotId}/export?format=json`, headers: user.headers });
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.headers['cache-control'], 'no-store');
+  assert.equal(JSON.parse(response.json().content).input2.songs.length, 25);
+  const other = await demo(f.app);
+  assert.equal((await f.app.inject({ url: `/analysis/snapshot/${snapshot.snapshotId}/export`, headers: other.headers })).statusCode, 404);
+  assert.equal((await f.app.inject({ url: `/analysis/snapshot/${snapshot.snapshotId}/export?format=invalid`, headers: user.headers })).statusCode, 400);
 });

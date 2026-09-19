@@ -1,0 +1,1 @@
+<view wx:if="{{busy}}" class="note" aria-live="polite">正在整理音乐线索…</view><view wx:if="{{error}}" class="card error" aria-live="assertive"><view class="heading">暂时没有完成</view><view>{{error.message}}</view><button class="link" bindtap="retry">重新查看</button></view>

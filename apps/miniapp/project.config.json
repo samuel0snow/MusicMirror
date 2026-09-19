@@ -1,0 +1,23 @@
+{
+    "description":  "MusicMirror 微信原生小程序",
+    "miniprogramRoot":  "miniprogram/",
+    "compileType":  "miniprogram",
+    "appid":  "wxb3b5a2edfdd81450",
+    "projectname":  "MusicMirror",
+    "libVersion":  "3.7.12",
+    "setting":  {
+                    "es6":  true,
+                    "enhance":  true,
+                    "minified":  true,
+                    "urlCheck":  false,
+                    "postcss":  true
+                },
+    "packOptions":  {
+                        "ignore":  [
+
+                                   ],
+                        "include":  [
+
+                                    ]
+                    }
+}

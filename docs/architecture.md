@@ -60,9 +60,9 @@
 
 ## 当前阶段
 
-后端与微信调用层已实现，并完成过真实扫码、采集及字段核验；验证范围见[研究记录](research/README.md)。[独立UI设计稿](ui-design/README.md)已交付，尚未接入小程序页面。技术栈为Fastify + TypeScript + Zod、Node.js >=22.13；SQLite提供持久化和事务，单进程任务工作器的状态存入数据库，重启恢复未完成任务。PostgreSQL、Redis、Docker仍属于后续部署选项。
+后端与微信调用层已实现，并完成过真实扫码、采集及字段核验；验证范围见[研究记录](research/README.md)。[独立UI设计稿](ui-design/README.md)已交付并接入小程序页面。技术栈为Fastify + TypeScript + Zod、Node.js >=22.13；SQLite提供持久化和事务，单进程任务工作器的状态存入数据库，重启恢复未完成任务。PostgreSQL、Redis、Docker仍属于后续部署选项。
 
-微信原生调用代码位于 `apps/miniapp/miniprogram/services` 与 `controllers`，不直接跨根目录导入共享 TS 包，通过 HTTP JSON 契约通信。页面注册、WXML/WXSS 和开发者工具配置由 GUI 阶段制作。
+微信原生调用代码位于 `apps/miniapp/miniprogram/services` 与 `controllers`，不直接跨根目录导入共享 TS 包，通过 HTTP JSON 契约通信。页面注册、WXML/WXSS 和开发者工具配置已落地。
 
 `Snapshot.modules` 始终包含 longTermListening / recentFavorites 两个模块。最近播放是探索与稳定的辅助来源，不能替代近期收藏。收藏输入不可用时返回明确空态；未知收藏时间不推断一周内收藏。
 

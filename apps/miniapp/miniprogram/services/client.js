@@ -14,9 +14,9 @@ function createClient(options) {
     error.code = code; error.statusCode = statusCode || 0;
     return error;
   }
-  function request(method, path, data) {
+  function request(method, path, data, explicitToken) {
     return new Promise((resolve, reject) => {
-      const token = getToken();
+      const token = explicitToken === undefined ? getToken() : explicitToken;
       wxApi.request({
         url: baseUrl + path, method, data, timeout,
         header: Object.assign({}, data !== undefined ? { 'content-type': 'application/json' } : {}, token ? { Authorization: 'Bearer ' + token } : {}),
@@ -41,9 +41,15 @@ function createClient(options) {
     loginDemo: () => login('/auth/demo', {}),
     connect: cookie => login('/auth/connect', { cookie }),
     createQr: () => request('POST', '/auth/qr', {}),
-    async checkQr(attempt) {
+    async checkQr(attempt, accept) {
       const result = await request('POST', '/auth/qr/check', { loginId: attempt.loginId, pollToken: attempt.pollToken });
-      if (result.status === 'authenticated') wxApi.setStorageSync(tokenKey, result.token);
+      if (result.status === 'authenticated') {
+        if (accept && !accept()) {
+          await request('POST', '/auth/logout', {}, result.token);
+          return { status: 'cancelled' };
+        }
+        wxApi.setStorageSync(tokenKey, result.token);
+      }
       return result;
     },
     cancelQr: attempt => request('POST', '/auth/qr/cancel', { loginId: attempt.loginId, pollToken: attempt.pollToken }),
@@ -57,6 +63,7 @@ function createClient(options) {
     run: id => request('GET', '/analysis/runs/' + encode(id)),
     latest: () => request('GET', '/analysis/latest'),
     snapshot: id => request('GET', '/analysis/snapshot/' + encode(id)),
+    exportSnapshot: (id, format) => request('GET', '/analysis/snapshot/' + encode(id) + '/export?format=' + encode(format)),
     longTerm: () => request('GET', '/analysis/modules/long-term'),
     recentFavorites: () => request('GET', '/analysis/modules/recent-favorites'),
     structure: () => request('GET', '/analysis/structure'),
@@ -81,7 +88,7 @@ function createClient(options) {
       }
       throw apiError('POLLING_TIMEOUT', '分析仍可能在运行，可继续查询任务进度');
     },
-    clearToken
+    clearToken, hasSession: () => !!getToken()
   };
   return client;
 }

@@ -13,6 +13,7 @@ import { Reports } from './modules/reports/index.js';
 import { JobQueue } from './jobs/queue.js';
 import { QrLogin } from './modules/auth/qr.js';
 import { realAccountPage } from './modules/auth/test-page.js';
+import { exportModules, songsCsv } from './modules/reports/export.js';
 
 declare module 'fastify' { interface FastifyRequest { account: Account | null; sessionToken: string | null } }
 export function buildApp(options: { config?: Config; store?: Store; provider?: MusicProvider } = {}) {
@@ -63,7 +64,7 @@ export function buildApp(options: { config?: Config; store?: Store; provider?: M
   const parseId = (params: unknown) => z.object({ id: z.uuid() }).parse(params).id;
   const assertIdle = (userId: string) => { if (store.findRun(userId)) throw new AppError(409, 'ANALYSIS_IN_PROGRESS', '采集期间不能修改输入，请等待完成'); };
 
-  app.get('/health', async () => ({ status: 'ok', providerMode: provider.mode }));
+  app.get('/health', async () => ({ status: 'ok', providerMode: provider.mode, demoAvailable: provider.mode === 'mock' && config.ALLOW_DEMO_AUTH }));
   app.post('/auth/qr', async (_request, reply) => { reply.header('cache-control', 'no-store'); return qrLogin.create(); });
   app.post('/auth/qr/check', async (request, reply) => { reply.header('cache-control', 'no-store'); const { loginId, pollToken } = qrProof.parse(request.body); return qrLogin.check(loginId, pollToken); });
   app.post('/auth/qr/cancel', async request => { const { loginId, pollToken } = qrProof.parse(request.body); return qrLogin.cancel(loginId, pollToken); });
@@ -104,6 +105,18 @@ export function buildApp(options: { config?: Config; store?: Store; provider?: M
   });
   app.get('/analysis/latest', async request => reports.latest(request.account!.userId));
   app.get('/analysis/snapshot/:id', async request => reports.snapshot(request.account!.userId, parseId(request.params)));
+  app.get('/analysis/snapshot/:id/export', async (request, reply) => {
+    const id = parseId(request.params);
+    const { format } = z.object({ format: z.enum(['json', 'input1', 'input2']).default('json') }).parse(request.query);
+    const snapshot = reports.snapshot(request.account!.userId, id);
+    const normalized = store.snapshotInput(request.account!.userId, id);
+    if (!normalized) throw new AppError(404, 'SNAPSHOT_NOT_FOUND', '快照数据不存在');
+    const data = exportModules(snapshot, normalized);
+    reply.header('cache-control', 'no-store');
+    return { filename: `musicmirror-${id}-${format}.${format === 'json' ? 'json' : 'csv'}`,
+      content: format === 'json' ? JSON.stringify(data, null, 2) : songsCsv(data[format].songs),
+      mime: format === 'json' ? 'application/json' : 'text/csv' };
+  });
   app.get('/analysis/history', async request => {
     const query = z.object({ limit: z.coerce.number().int().min(1).max(100).default(20), offset: z.coerce.number().int().min(0).default(0) }).parse(request.query);
     return reports.history(request.account!.userId, query.limit, query.offset);

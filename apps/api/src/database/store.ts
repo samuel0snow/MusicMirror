@@ -77,6 +77,10 @@ export class Store {
   snapshots(userId: string, limit = 100, offset = 0): Snapshot[] { return this.db.prepare('SELECT snapshot_json FROM snapshots WHERE user_id=? ORDER BY rowid DESC LIMIT ? OFFSET ?').all(userId, limit, offset).map(row => JSON.parse(String(row.snapshot_json))); }
   snapshot(userId: string, id: string): Snapshot | undefined { const row = this.db.prepare('SELECT snapshot_json FROM snapshots WHERE user_id=? AND id=?').get(userId, id); return row && JSON.parse(String(row.snapshot_json)); }
   latest(userId: string) { return this.snapshots(userId, 1)[0]; }
+  snapshotInput(userId: string, id: string): NormalizedData | undefined {
+    const row = this.db.prepare('SELECT normalized_json FROM snapshots WHERE user_id=? AND id=?').get(userId, id);
+    return row ? JSON.parse(String(row.normalized_json)) : undefined;
+  }
   saveCollection(run: Run, normalized: NormalizedData, raw: unknown, snapshot: Snapshot, unchanged: boolean) {
     this.transaction(() => {
       if (!unchanged) {

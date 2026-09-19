@@ -1,0 +1,25 @@
+'use strict';
+const labels={sampleSize:'样本歌曲数',top10Share:'前10首播放份额',effectiveSongSize:'有效曲库',representatives:'代表作品',songId:'歌曲ID',name:'名称',share:'份额',playShare:'播放份额',playCount:'播放次数',distributions:'维度分布',artists:'艺人',albums:'专辑',styles:'曲风',language:'语种',decade:'年代',long:'长期聆听',redHeart:'选定红心',rows:'明细',map:'权重映射',coverage:'加权覆盖',tempo:'BPM分位数',q25:'25分位数',median:'中位数',q75:'75分位数',crossArtistStyleBridges:'跨艺人共同曲风',artistCount:'艺人数',styleId:'曲风ID',selectedOverlap:'选定红心重合比例',currentlyLikedShareOfKnownPlayback:'已知状态内红心播放份额',quadrants:'作品分组',selectedAndLong:'选定且长期出现',selectedOutsideLong:'选定且长期未出现',longCurrentlyLiked:'长期样本中当前红心',longCurrentlyNotLiked:'长期样本中未红心',familiarArtistOutsideLong:'熟悉艺人的长期外作品数',recentlySeenHeartCount:'近期出现的选定红心数',distances:'分维度距离',jsd:'JSD距离',newArtistShare:'新艺人权重',sharedStyles:'共同曲风',longShare:'长期份额',redHeartShare:'红心份额',songs:'歌曲关系',firstListenedAt:'首次可见收听',redHeartAt:'当前红心时间',daysFromFirstListenToCurrentLike:'首听至当前红心天数',knownDays:'相识天数',cumulativePlayCount:'累计播放次数',cumulativeMinutes:'累计收听分钟',mostPlayedAt:'最多播放日',mostPlayedCount:'当日播放次数',frequentHours:'常听时段',observedAt:'查询时间',source:'来源',startAt:'开始时间',endAt:'结束时间',musicMinutes:'音乐分钟',podcastMinutes:'播客分钟',audiobookMinutes:'有声书分钟',totalMinutes:'全内容分钟',periods:'周期报告',years:'年度背景',year:'年度',seconds:'秒',playNum:'来源歌曲计数',totalSeconds:'累计秒',weeklySample:'周样本',size:'样本数',artistDistribution:'艺人分布',styleDistribution:'曲风分布',freshFirstListenCount:'近30天首听数',longKnownCount:'较早首听数',negativeLagCount:'负间隔异常数',actualLikeRange:'实际红心范围',selectionWindow:'选择时间范围',window:'统计窗口',eventCount:'事件数',distinctSongs:'不同歌曲数',repeatEventRate:'重听事件率',durationTop10Share:'前10首实际时长份额',completedRate:'完成率',axes:'声音维度',mean:'均值',delta:'差值',melody:'旋律',rhythm:'节奏',vocalPresence:'人声',arrangementDensity:'编曲密度',valence:'效价',energy:'能量',available:'可用',partial:'部分可用',unavailable:'资料不足'};
+const pct=n=>typeof n==='number'&&Number.isFinite(n)?(n*100).toFixed(1)+'%':'—';
+function date(value){if(value===null||value===undefined||value==='')return '未知';const d=new Date(value);if(!Number.isFinite(d.getTime()))return '未知';const pad=n=>String(n).padStart(2,'0');return d.getFullYear()+'.'+pad(d.getMonth()+1)+'.'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes());}
+function bars(rows){return (rows||[]).slice(0,10).map((r,i)=>{const v=r.share===undefined?r.playShare:r.share;return {id:r.id||r.songId||String(i),name:r.name||r.songId||r.id,display:pct(v),width:typeof v==='number'?Math.max(0,Math.min(100,v*100)):0};});}
+function flatten(value,path,out,key){
+ out=out||[];path=path||'';if(value===null||typeof value!=='object'){
+ let display=value===null||value===undefined?'未知':typeof value==='boolean'?(value?'是':'否'):String(value);
+ if(typeof value==='number'){display=/At$/.test(key||'')?date(value):Number.isInteger(value)?String(value):value.toFixed(4);}
+ out.push({label:path||'值',value:display});return out;
+ }
+ const entries=Array.isArray(value)?value.map((v,i)=>[String(i+1),v]):Object.entries(value);
+ if(!entries.length)out.push({label:path,value:'无记录'});
+ entries.forEach(([k,v])=>flatten(v,path?path+' / '+(labels[k]||k):labels[k]||k,out,k));return out;
+}
+function cardView(card,version){const v=card[version||'base'];const f=v.facts||{};let chart={kind:v.status==='unavailable'?'empty':'prism',rows:[],caption:''};
+ if(card.id==='center'&&v.status!=='unavailable')chart={kind:'stat',value:pct(version==='enhanced'?f.durationTop10Share:f.top10Share),caption:version==='enhanced'?'前10首实际收听时长份额':'前10首在可见长期样本内的播放份额'};
+ if(card.id==='alignment'&&typeof f.selectedOverlap==='number')chart={kind:'stat',value:pct(f.selectedOverlap),caption:'选定红心与长期样本的歌曲交集'};
+ if(card.id==='fingerprint'&&f.distributions){const d=f.distributions.styles.long;chart={kind:'bars',rows:bars(d.rows),caption:'已知曲风内份额 · 加权覆盖 '+pct(d.coverage)};}
+ return {id:card.id,title:card.title,purpose:card.purpose,status:v.status,statusText:labels[v.status],coverageText:v.coverage===null?'未提供':pct(v.coverage),summaries:v.summaries,method:v.method,limitations:v.limitations,requiredData:v.requiredData,chart,facts:flatten(f),};}
+function cardSummary(card){const v=card.base;return {id:card.id,title:card.title,purpose:card.purpose,status:v.status,statusText:labels[v.status],coverageText:v.coverage===null?'未提供':pct(v.coverage),summaries:v.summaries};}
+function timeWindowLabel(module){return module&&module.timeWindow==='unknown'?'红心时间范围未知':'用户提供的红心时间';}
+function overview(s){return {snapshotId:s.snapshotId,created:date(s.createdAt),collected:date(s.dataWindow.collectedAt),version:s.algorithmVersion,legacy:!s.aesthetic,longCount:s.modules.longTermListening.sampleSize,heartCount:s.modules.recentFavorites.sampleSize,heartStatus:s.modules.recentFavorites.status,heartWindow:timeWindowLabel(s.modules.recentFavorites),cards:s.aesthetic?s.aesthetic.cards.map(cardSummary):[],insights:(s.insights||[]).slice(0,3),warnings:s.warnings||[]};}
+async function readReport(page){return page.query.snapshotId?page.client.snapshot(page.query.snapshotId):page.client.latest();}
+module.exports={labels,pct,date,bars,flatten,cardView,cardSummary,timeWindowLabel,overview,readReport};

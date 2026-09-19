@@ -4,7 +4,7 @@
 
 **你的歌单，比你更了解你的音乐审美。** 观察长期反复听什么、最近主动喜欢什么，以及两者的延续与变化。
 
-项目依据：[完成指南](docs/design/项目完成指南.md)、[输入设计](docs/design/输入数据设想.png)、[宣传方向](docs/design/项目宣传点.md)。当前提供后端与微信原生按钮调用层；GUI后续制作，已有真实扫码、基础采集、百科补全与红心行为验证。阅读入口见[文档导航](docs/README.md)。
+项目依据：[完成指南](docs/design/项目完成指南.md)、[输入设计](docs/design/输入数据设想.png)、[宣传方向](docs/design/项目宣传点.md)。当前提供后端与微信原生 GUI：扫码、基础采集、百科补全、红心行为验证与 12 类审美卡片页面，视觉按[独立UI设计与全流程图片](docs/ui-design/musicmirror-v1/README.md)落地。阅读入口见[文档导航](docs/README.md)。
 
 ## 启动
 
@@ -36,8 +36,8 @@ npm start
 ```text
 MusicMirror/
 ├── apps/
-│   ├── miniapp/miniprogram/   # 微信原生请求与按钮处理（没有视觉页面）
-│   │   ├── pages/            # home / structure / preferences / changes / metric-detail
+│   ├── miniapp/miniprogram/   # 微信原生 GUI、调用层与按钮处理
+│   │   ├── pages/            # welcome / home / explore / structure / preferences / history / account ...
 │   │   ├── components/       # 应用内组件
 │   │   ├── services/         # wx.request、自有会话、轮询与错误
 │   │   ├── controllers/      # GUI按钮事件处理器
@@ -68,6 +68,6 @@ MusicMirror/
     └── migrations/          # 数据库迁移
 ```
 
-详细职责见 [架构](docs/architecture.md)、[产品指导](docs/product-spec.md)、[API契约](docs/api-contract.md)、[微信接入](docs/miniapp-integration.md)。目录中仍保留后续GUI/增强模块的占位，不代表已实现这些功能。
+详细职责见 [架构](docs/architecture.md)、[产品指导](docs/product-spec.md)、[API契约](docs/api-contract.md)、[微信接入](docs/miniapp-integration.md)。目录中仍保留增强模块的占位，不代表已实现这些功能。
 
 当前技术：TypeScript、Fastify、Zod、SQLite和持久化单进程队列。PostgreSQL、Redis/BullMQ、容器化及审美特征增强的建议见 [后续优化](docs/roadmap.md)。实现记录和验证结果见 [推进记录](docs/progress.md)，数据规则见 [隐私说明](docs/privacy.md)。

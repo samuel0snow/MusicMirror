@@ -1,0 +1,11 @@
+{
+  "pages": ["pages/welcome/index", "pages/home/index", "pages/explore/index", "pages/structure/index", "pages/preferences/index", "pages/history/index", "pages/account/index", "pages/login/index", "pages/inputs/index", "pages/run/index", "pages/card/index", "pages/evidence/index", "pages/compare/index", "pages/trends/index", "pages/privacy/index", "pages/share/index", "pages/export/index"],
+  "window": {"navigationStyle": "custom", "navigationBarTitleText": "MusicMirror", "navigationBarTextStyle": "@textStyle", "backgroundColor": "@background", "enablePullDownRefresh": true},
+  "tabBar": {"color": "@muted", "selectedColor": "@accent", "backgroundColor": "@surface", "borderStyle": "@border", "list": [
+    {"pagePath":"pages/home/index","text":"镜像"}, {"pagePath":"pages/explore/index","text":"探索"},
+    {"pagePath":"pages/history/index","text":"变化"}, {"pagePath":"pages/account/index","text":"我的"}
+  ]},
+  "usingComponents": {"mm-header":"/components/header/index", "mm-state":"/components/state/index", "mm-chart":"/components/chart/index"},
+  "style": "v2", "darkmode": true, "themeLocation": "theme.json", "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents", "networkTimeout": {"request":15000}
+}

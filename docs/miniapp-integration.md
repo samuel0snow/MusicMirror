@@ -1,8 +1,8 @@
 # 微信原生 GUI 接入
 
-当前已实现 `apps/miniapp/miniprogram/services/client.js` 和 `controllers/actions.js`，尚未实现视觉页面。[独立UI设计与全流程图片](ui-design/README.md)可作为后续页面实现参考。调用层使用CommonJS和微信wx.request，不依赖Node、浏览器fetch或根目录外的TS源码。
+当前已实现原生视觉页面（`apps/miniapp/miniprogram/pages`）、应用内组件（`components`）、调用层（`services/client.js`）和按钮处理器（`controllers/actions.js`），按[独立UI设计与全流程图片](ui-design/README.md)的页面与状态落地。调用层使用CommonJS和微信wx.request，不依赖Node、浏览器fetch或根目录外的TS源码。
 
-未来页面脚本可按以下方式接入（示例，不是已创建的GUI）：
+以下示例说明 `controllers/actions.js` 这一按钮处理器层的用法，保留用于测试与兼容；已创建的页面统一使用 `services/page.js` 的 `createPage`。
 
 ```js
 const { createClient } = require('../../services/client');
@@ -19,7 +19,7 @@ Page({
 });
 ```
 
-按需要为每个动作添加同名转发方法后，将未来按钮bindtap设为该方法。不要动态改写Page注册机制。页面通过setData获取busy/error/report等状态，错误由处理器记录并返回null；底层client方法则抛出带code/statusCode的错误。
+按需要为每个动作添加同名转发方法后，将按钮bindtap设为该方法。不要动态改写Page注册机制。页面通过setData获取busy/error/report等状态，错误由处理器记录并返回null；底层client方法则抛出带code/statusCode的错误。
 
 | 处理器 | 参数 / 状态 |
 | --- | --- |
@@ -42,6 +42,6 @@ Page({
 
 收藏编辑只更新输入，不改历史报告；之后点击刷新生成新快照。报告需按basis注明权重、显示sampleSize和warnings；value=null显示reason。
 
-GUI阶段再添加app入口、页面WXML/WXSS/JSON和project.config.json（miniprogramRoot指向miniprogram/）。开发者工具本地联调需按其设置允许本机请求；真机把baseUrl改成可达的服务地址。正式环境使用HTTPS与微信合法请求域名，不携带网易云Cookie调用报告接口。
+app入口、页面WXML/WXSS/JSON与project.config.json已实现（`miniprogramRoot`指向`miniprogram/`）。开发者工具本地联调需按其设置允许本机请求；真机把baseUrl改成可达的服务地址。正式环境使用HTTPS与微信合法请求域名，不携带网易云Cookie调用报告接口。
 
-二维码key/create/check已接通，卸载处理器取消未完成的扫码。当前可使用本机诊断页完成首次测试，正式微信页面的图片展示与轮询生命周期仍需GUI阶段接入。
+二维码key/create/check已接通，登录页展示二维码并按pollIntervalMs轮询，离开页面时取消未完成的扫码。可用本机诊断页完成首次测试，再在微信开发者工具中做视觉与真机联调。`node scripts/check-miniapp.mjs`会校验页面清单、JavaScript语法并调用wcc/wcsc编译WXML/WXSS。
