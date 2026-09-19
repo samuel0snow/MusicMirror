@@ -5,8 +5,9 @@
 1. [产品规范](product-spec.md)：两个模块的目标、红心与歌单的区别。
 2. [数据需求与接口能力](data-requirements-and-api.md)：需要什么、当前接入什么、候选来源与解释边界。
 3. [最新账号探索](research/account-api-exploration-2026-09-18.md)、[时长核验](research/listening-duration-verification-2026-09-18.md)及[142首覆盖率](research/song-memory-coverage-2026-09-18.md)：真实字段、统计口径与批量覆盖，客户端确认单独登记。
-4. [审美算法设计](aesthetic-algorithm-design.md)：12类总结、现有/增强双版本、设计理由与运行；[旧版算法规范](algorithm-spec.md)说明现有后端六指数。
+4. [审美算法设计](aesthetic-algorithm-design.md)：12类总结、现有/增强双版本、设计理由与运行；[旧版算法规范](algorithm-spec.md)仅说明历史六指数。
 5. [开发指南](development.md)：运行、登录、导出、探索与验证。
+6. [光与回声 UI 设计稿](ui-design/musicmirror-v1/README.md)：融合 ARCAEA 与 Apple 视觉方向的48屏全流程设计，含PNG、可编辑SVG、状态与流程矩阵；独立于当前前端。
 
 ## 文件职责
 
