@@ -44,20 +44,21 @@ docs/
 ├── aesthetic-algorithm-design.md     12类卡片、公式与增强条件
 ├── data-requirements-and-api.md      数据需求、来源与接入状态
 ├── metadata-enrichment.md            字段解析、补全与红心语义
-├── architecture.md                  数据流、模块和包边界
-├── api-contract.md                  请求、响应、状态与错误
+├── architecture.md                   数据流、模块和包边界
+├── api-contract.md                   请求、响应、状态与错误
 ├── miniapp-integration.md            微信请求与按钮处理器
-├── development.md                   启动、登录、命令与验证
-├── privacy.md                       授权、保存、解绑与删除
-├── test-data-layout.md              本机数据、导出与研究目录
-├── roadmap.md                       优化方向与迁移条件
-├── progress.md                      按日期记录的项目进展
-├── algorithm-spec.md                旧路径跳转，正文已归档
-├── design/README.md                 原始需求与创意材料索引
-├── research/README.md               账号、时长、记忆核验索引
-├── history/README.md                旧算法与阶段记录索引
-└── ui-design/README.md              视觉方案及版本索引
-    └── musicmirror-v1/              48屏SVG、8张PNG、规范与流程
+├── development.md                    启动、登录、命令与验证
+├── local-api-and-cloud-migration.md  网络与API完整操作与迁移
+├── privacy.md                        授权、保存、解绑与删除
+├── test-data-layout.md               本机数据、导出与研究目录
+├── roadmap.md                        优化方向与迁移条件
+├── progress.md                       按日期记录的项目进展
+├── algorithm-spec.md                 旧路径跳转，正文已归档
+├── design/README.md                  原始需求与创意材料索引
+├── research/README.md                账号、时长、记忆核验索引
+├── history/README.md                 旧算法与阶段记录索引
+└── ui-design/README.md               视觉方案及版本索引
+    └── musicmirror-v1/               48屏SVG、8张PNG、规范与流程
 ```
 
 ## 文档状态与阅读优先级

@@ -37,6 +37,8 @@ test('native Pages use real HTTP for input, cards, frozen history, trends, files
     const page: any = { ...definition, data: structuredClone(definition.data), setData(patch: any, callback?: () => void) { Object.assign(this.data, patch); callback?.(); } };
     page.onLoad(query); return page;
   }
+  const login = mount('login'); await login.onShow();
+  assert.equal(login.data.providerMode, 'mock'); assert.equal(login.data.demoAvailable, true); login.onHide();
   const welcome = mount('welcome'); await welcome.onShow(); assert.equal(welcome.data.demoAvailable, true);
   await welcome.demo(); assert.ok(client.hasSession()); welcome.onHide();
   const input = mount('inputs'); await input.onShow(); assert.equal(input.data.items.length, 25);

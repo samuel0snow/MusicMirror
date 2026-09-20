@@ -4,7 +4,7 @@ const config = require('./config');
 App({
   globalData: { account: null, theme: 'light' },
   onLaunch() {
-    this.client = createClient({ wx, baseUrl: config.baseUrl });
+    this.client = createClient({ wx, baseUrl: config.getBaseUrl(wx) });
     this.globalData.theme = (wx.getAppBaseInfo ? wx.getAppBaseInfo() : wx.getSystemInfoSync()).theme || 'light';
     if (wx.onThemeChange) wx.onThemeChange(event => {
       this.globalData.theme = event.theme;

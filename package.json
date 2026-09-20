@@ -13,6 +13,7 @@
   ],
   "scripts": {
     "dev": "node --env-file-if-exists=.env --import tsx apps/api/src/server.ts",
+    "dev:lan": "node --env-file-if-exists=.env --import tsx apps/api/src/server.ts --lan",
     "dev:watch": "node --env-file-if-exists=.env --import tsx --watch apps/api/src/server.ts",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",

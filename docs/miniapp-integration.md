@@ -44,4 +44,6 @@ Page({
 
 app入口、页面WXML/WXSS/JSON与project.config.json已实现（`miniprogramRoot`指向`miniprogram/`）。开发者工具本地联调需按其设置允许本机请求；真机把baseUrl改成可达的服务地址。正式环境使用HTTPS与微信合法请求域名，不携带网易云Cookie调用报告接口。
 
+本地地址由`miniprogram/config.js`集中管理，默认`http://127.0.0.1:3000`。临时切换真机或隧道地址时可在开发者工具控制台执行`wx.setStorageSync('musicmirror.apiBaseUrl', 'https://你的地址')`并重启小程序，不需要修改提交到仓库的配置；恢复默认值使用`wx.removeStorageSync('musicmirror.apiBaseUrl')`。完整步骤及云开发适配边界见[本地 API 与云开发迁移](local-api-and-cloud-migration.md)。
+
 二维码key/create/check已接通，登录页展示二维码并按pollIntervalMs轮询，离开页面时取消未完成的扫码。可用本机诊断页完成首次测试，再在微信开发者工具中做视觉与真机联调。`node scripts/check-miniapp.mjs`会校验页面清单、JavaScript语法并调用wcc/wcsc编译WXML/WXSS。
