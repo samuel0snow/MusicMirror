@@ -9,6 +9,7 @@
   "workspaces": [
     "apps/api",
     "apps/miniapp",
+    "apps/web-preview",
     "packages/*"
   ],
   "scripts": {
@@ -26,7 +27,10 @@
     "data:organize": "node scripts/organize-test-data.mjs",
     "explore:account": "npm run build && node scripts/explore-account.mjs",
     "verify:memory": "npm run build && node scripts/verify-song-memory-coverage.mjs",
-    "analyze:aesthetic": "npm run build && node scripts/analyze-aesthetic.mjs"
+    "analyze:aesthetic": "npm run build && node scripts/analyze-aesthetic.mjs",
+    "dev:web": "npm run dev --workspace @musicmirror/web-preview",
+    "build:web": "npm run build --workspace @musicmirror/web-preview",
+    "test:web": "npm run test --workspace @musicmirror/web-preview"
   },
   "dependencies": {
     "fastify": "^5.12.5",

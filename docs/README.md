@@ -7,7 +7,7 @@
 - 两个独立输入：**长期可见 Top100**（播放次数加权）与**用户选定最多50首红心**（歌曲等权）。红心、加入自订歌单、订阅歌单是不同操作。
 - 新快照使用 **music-aesthetic-2.0 的12类审美卡片**，每类提供现有数据与增强分析；输入不足明确标注，旧六指数仅用于历史报告。
 - 后端与微信请求/按钮调用层已实现，真实账号接口核验有记录；研究资料不等于全部接入常规刷新。
-- **UI已有独立48屏设计稿，尚未接入小程序前端**；图片中的合成数字不作为真实账号结论。
+- **UI已有独立48屏设计稿、微信原生页面和浏览器交互 Preview**；Preview 与图片中的合成数字不作为真实账号结论。
 
 ## 按任务查找
 
@@ -15,6 +15,7 @@
 | --- | --- | --- |
 | 了解产品定位与双输入 | [产品规范](product-spec.md) | [原始设计导航](design/README.md) |
 | 查看界面图片与源稿 | [UI设计导航](ui-design/README.md) | [浏览48屏](ui-design/musicmirror-v1/index.html)、[流程矩阵](ui-design/musicmirror-v1/FLOW-COVERAGE.md) |
+| 在浏览器交互审阅界面 | [Web Preview 建设指导](web-preview-implementation-guide.md) | 根目录运行 `npm run dev:web` |
 | 知道需要什么数据、缺什么 | [数据需求与API能力](data-requirements-and-api.md) | [研究记录索引](research/README.md) |
 | 理解12张卡片怎么算 | [审美算法设计](aesthetic-algorithm-design.md) | [字段补全](metadata-enrichment.md) |
 | 启动、登录、导出或验证 | [开发指南](development.md) | [测试数据目录](test-data-layout.md) |
@@ -47,6 +48,7 @@ docs/
 ├── architecture.md                   数据流、模块和包边界
 ├── api-contract.md                   请求、响应、状态与错误
 ├── miniapp-integration.md            微信请求与按钮处理器
+├── web-preview-implementation-guide.md 浏览器交互预览的架构、阶段与验收
 ├── development.md                    启动、登录、命令与验证
 ├── local-api-and-cloud-migration.md  网络与API完整操作与迁移
 ├── privacy.md                        授权、保存、解绑与删除

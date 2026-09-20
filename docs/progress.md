@@ -2,6 +2,12 @@
 
 本文件按日期保留阶段结果；当前阅读入口见[文档导航](README.md)，实验与旧方案分别见[研究索引](research/README.md)和[历史归档](history/README.md)。
 
+## 2026-09-21：交互式 Web Preview
+
+新增 `apps/web-preview`，使用 Vite、React、TypeScript 和原生 CSS，在浏览器中提供 390×844 手机画布、17 个现有小程序页面、四项主导航、亮暗主题、页面与场景控制器。登录二维码、任务、分享和导出均使用明确标注的固定合成数据模拟，不读取 `.data`，不调用真实账号或后端。
+
+Preview 覆盖 loading/error/empty/ready、二维码、分析任务、增强资料不足、历史可比与不可比、少于三次趋势降级等状态；输入页支持添加、去重、删除与最多50首边界。根命令为 `npm run dev:web`、`npm run test:web` 和 `npm run build:web`。建设与后续维护边界见[Web Preview 指导](web-preview-implementation-guide.md)。
+
 ## 2026-09-19：文档整理与统一导航
 
 总README按任务、阅读路线和文档状态组织入口；design、research、history、ui-design各补充目录导航。旧六指数正文归档至history/algorithm-spec-v1.md，原路径保留跳转。修复两份历史记录的乱码提示，更新架构、产品与小程序说明中的阶段状态；保留原始设计和实验正文。
